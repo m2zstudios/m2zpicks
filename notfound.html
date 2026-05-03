@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 — Page Not Found | m2zpicks</title>
+  <meta name="description" content="The page you are looking for could not be found. Browse our AI tools directory instead." />
+  <meta property="og:title" content="Page Not Found | m2zpicks" />
+  <meta property="og:description" content="The requested page could not be found." />
+  <meta property="og:type" content="website" />
+  <link rel="canonical" href="https://m2zpicks.netlify.app/notfound.html" />
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <meta name="google-adsense-account" content="ca-pub-6875637223271831">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <!-- Google tag -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-RN3L9L9LER"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date()); gtag('config', 'G-RN3L9L9LER');
+  </script>
+  <style>
+    :root {
+      --bg:        #0a0a0f;
+      --bg-card:   #111118;
+      --border:    rgba(255,255,255,0.07);
+      --border-hi: rgba(255,255,255,0.14);
+      --text:      #e8e8f0;
+      --muted:     #8888a8;
+      --accent:    #7c5cfc;
+      --accent-2:  #00d4aa;
+      --radius:    14px;
+      --radius-lg: 22px;
+      --font-head: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      display: flex; flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* Grid bg */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(124,92,252,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,92,252,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none; z-index: 0;
+    }
+
+    .scroll-progress {
+      position: fixed; top: 0; left: 0; height: 2px; width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      z-index: 9999;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+    /* Header */
+    .site-header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,10,15,0.88);
+      backdrop-filter: blur(18px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-wrap { display: flex; align-items: center; gap: 32px; height: 64px; }
+    .logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-head); font-weight: 800; font-size: 18px; letter-spacing: -0.3px; }
+    .logo-mark { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-radius: 8px; display: grid; place-items: center; font-size: 14px; color: #fff; }
+    .main-nav { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+    .main-nav a { padding: 6px 14px; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--muted); transition: color var(--transition), background var(--transition); }
+    .main-nav a:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; font-family: var(--font-body); cursor: pointer; border: none; transition: all var(--transition); }
+    .btn-nav { background: rgba(124,92,252,0.15); color: #a78bfa; border: 1px solid rgba(124,92,252,0.3); }
+    .btn-nav:hover { background: rgba(124,92,252,0.25); border-color: rgba(124,92,252,0.5); }
+    .theme-toggle, .menu-toggle { width: 36px; height: 36px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 15px; display: grid; place-items: center; color: var(--text); transition: background var(--transition); }
+    .theme-toggle:hover, .menu-toggle:hover { background: rgba(255,255,255,0.1); }
+    .menu-toggle { display: none; }
+
+    /* 404 Main */
+    main {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center;
+      padding: 60px 24px;
+      position: relative; z-index: 1;
+    }
+
+    .nf-wrap {
+      text-align: center;
+      max-width: 520px;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    /* Giant 404 glitch number */
+    .nf-code {
+      font-family: var(--font-head);
+      font-size: clamp(100px, 18vw, 180px);
+      font-weight: 800;
+      letter-spacing: -8px;
+      line-height: 1;
+      margin-bottom: 8px;
+      position: relative;
+      display: inline-block;
+      background: linear-gradient(135deg, rgba(124,92,252,0.5) 0%, rgba(0,212,170,0.3) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 40px rgba(124,92,252,0.3));
+    }
+    /* Glitch layers */
+    .nf-code::before,
+    .nf-code::after {
+      content: '404';
+      position: absolute; inset: 0;
+      background: inherit;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nf-code::before {
+      animation: glitch1 3s infinite;
+      clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);
+      transform: translateX(-3px);
+      opacity: 0.6;
+    }
+    .nf-code::after {
+      animation: glitch2 3s infinite 0.15s;
+      clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+      transform: translateX(3px);
+      opacity: 0.4;
+    }
+    @keyframes glitch1 {
+      0%,90%,100% { transform: translateX(0); opacity: 0; }
+      92% { transform: translateX(-4px); opacity: 0.6; }
+      94% { transform: translateX(4px); opacity: 0.6; }
+      96% { transform: translateX(-2px); opacity: 0.4; }
+      98% { transform: translateX(2px); opacity: 0.4; }
+    }
+    @keyframes glitch2 {
+      0%,90%,100% { transform: translateX(0); opacity: 0; }
+      93% { transform: translateX(4px); opacity: 0.5; }
+      95% { transform: translateX(-4px); opacity: 0.5; }
+      97% { transform: translateX(2px); opacity: 0.3; }
+      99% { transform: translateX(-2px); opacity: 0.3; }
+    }
+
+    /* Orbit decoration */
+    .nf-orbit {
+      width: 280px; height: 280px;
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      border: 1px dashed rgba(124,92,252,0.12);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: orbitSpin 20s linear infinite;
+    }
+    .nf-orbit-2 {
+      width: 380px; height: 380px;
+      border-color: rgba(0,212,170,0.07);
+      animation-duration: 30s;
+      animation-direction: reverse;
+    }
+    .nf-orbit::before {
+      content: '✦';
+      position: absolute; top: -8px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px; color: var(--accent);
+      opacity: 0.8;
+    }
+    @keyframes orbitSpin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+    .nf-container {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 32px;
+    }
+
+    .nf-title {
+      font-family: var(--font-head);
+      font-size: 24px; font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+    .nf-desc {
+      font-size: 15px; color: var(--muted);
+      line-height: 1.7; margin-bottom: 36px;
+    }
+    .nf-actions {
+      display: flex; align-items: center; justify-content: center;
+      gap: 12px; flex-wrap: wrap;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #5a3fe0);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(124,92,252,0.3);
+      padding: 12px 28px;
+      font-size: 14px; font-weight: 700;
+      border-radius: 12px;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: all var(--transition);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(124,92,252,0.4); }
+    .btn-secondary {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border-hi);
+      color: var(--muted);
+      padding: 12px 24px;
+      font-size: 14px; font-weight: 500;
+      border-radius: 12px;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: all var(--transition);
+    }
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
+
+    /* Suggestions */
+    .nf-suggestions {
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+    }
+    .nf-suggestions p { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 16px; }
+    .suggestion-chips { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+    .chip {
+      padding: 7px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 13px; font-weight: 500;
+      color: var(--muted);
+      transition: all var(--transition);
+      cursor: pointer;
+    }
+    .chip:hover { border-color: rgba(124,92,252,0.35); color: #a78bfa; background: rgba(124,92,252,0.06); }
+
+    /* Footer */
+    .site-footer { border-top: 1px solid var(--border); padding: 28px 0; position: relative; z-index: 1; }
+    .footer-wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .footer-wrap p { font-size: 13px; color: var(--muted); }
+    .footer-wrap nav { display: flex; gap: 20px; }
+    .footer-wrap nav a { font-size: 13px; color: var(--muted); transition: color var(--transition); }
+    .footer-wrap nav a:hover { color: var(--text); }
+
+    body.light {
+      --bg: #f5f5fa; --bg-card: #ffffff;
+      --border: rgba(0,0,0,0.08); --border-hi: rgba(0,0,0,0.15);
+      --text: #0f0f18; --muted: #6b6b8a;
+    }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 768px) {
+      .main-nav { display: none; }
+      .main-nav.open { display: flex; flex-direction: column; position: absolute; top: 64px; left: 0; right: 0; background: rgba(10,10,15,0.98); border-bottom: 1px solid var(--border); padding: 16px; gap: 4px; z-index: 200; }
+      .menu-toggle { display: grid; }
+    }
+  </style>
+</head>
+<body data-page="notfound">
+  <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="index.html" class="logo" aria-label="m2zpicks Home">
+        <span class="logo-mark">✦</span>
+        <span class="logo-text">m2zpicks</span>
+      </a>
+      <nav class="main-nav" id="mainNav" aria-label="Main Navigation">
+        <a href="index.html">Home</a>
+        <a href="list.html">Browse Tools</a>
+      </nav>
+      <div class="nav-actions">
+        <a href="list.html" class="btn btn-nav">Start Exploring →</a>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="nf-wrap">
+
+      <!-- Animated orbit + giant 404 -->
+      <div class="nf-container">
+        <div class="nf-orbit nf-orbit-2"></div>
+        <div class="nf-orbit"></div>
+        <div class="nf-code" aria-hidden="true">404</div>
+      </div>
+
+      <h1 class="nf-title">Lost in the AI void</h1>
+      <p class="nf-desc">
+        This page doesn't exist — or it may have moved. Head back home and find the AI tool you're actually looking for.
+      </p>
+
+      <div class="nf-actions">
+        <a href="index.html" class="btn-primary">← Go Home</a>
+        <a href="list.html" class="btn-secondary">Browse All Tools</a>
+      </div>
+
+      <div class="nf-suggestions">
+        <p>Quick links</p>
+        <div class="suggestion-chips">
+          <a href="list.html?cat=writing" class="chip">✍️ Writing</a>
+          <a href="list.html?cat=coding" class="chip">💻 Coding</a>
+          <a href="list.html?cat=design" class="chip">🎨 Design</a>
+          <a href="list.html?cat=video" class="chip">🎬 Video</a>
+          <a href="list.html?cat=productivity" class="chip">⚡ Productivity</a>
+        </div>
+      </div>
+
+    </div>
+
+    <section style="margin: 40px 0;">
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6875637223271831"
+           crossorigin="anonymous"></script>
+      <!-- Ad1(Square) -->
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-6875637223271831"
+           data-ad-slot="6502079768"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-wrap">
+      <p>© <span id="year"></span> m2zpicks — Built for builders.</p>
+      <nav aria-label="Footer links">
+        <a href="about.html">About</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    const tt = document.getElementById('themeToggle');
+    if (tt) {
+      if (localStorage.getItem('theme') === 'light') { document.body.classList.add('light'); tt.textContent = '☀️'; }
+      tt.addEventListener('click', () => { document.body.classList.toggle('light'); const il = document.body.classList.contains('light'); localStorage.setItem('theme', il ? 'light' : 'dark'); tt.textContent = il ? '☀️' : '🌙'; });
+    }
+    const mt = document.getElementById('menuToggle'), mn = document.getElementById('mainNav');
+    if (mt && mn) mt.addEventListener('click', () => { mn.classList.toggle('open'); mt.setAttribute('aria-expanded', mn.classList.contains('open')); });
+    const yr = document.getElementById('year'); if (yr) yr.textContent = new Date().getFullYear();
+  </script>
+  <script>(function(s){s.dataset.zone='10938327',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+  <script src="gift.js?v=20260314"></script>
+
+</body>
+</html>

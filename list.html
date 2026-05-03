@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Browse AI Tools | m2zpicks</title>
+  <meta name="description" content="Browse all AI tools by category, search by name, and open detailed pages for each product." />
+  <meta property="og:title" content="Browse AI Tools | m2zpicks" />
+  <meta property="og:description" content="Search and filter 1000+ AI tools with category and quick actions." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/list.html" />
+  <link rel="canonical" href="https://m2zpicks.netlify.app/list.html" />
+  <link rel="stylesheet" href="style.css" />
+  <script>(function(s){s.dataset.zone='10801492',s.src='https://izcle.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+  <script src="https://5gvci.com/act/files/tag.min.js?z=10891515" data-cfasync="false" async></script>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <meta name="google-adsense-account" content="ca-pub-6875637223271831">
+</head>
+<body data-page="list">
+  <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="index.html" class="logo" aria-label="m2zpicks Home">
+        <span class="logo-mark">✦</span>
+        <span class="logo-text">m2zpicks</span>
+      </a>
+
+      <nav class="main-nav" id="mainNav" aria-label="Main Navigation">
+        <a href="index.html">Home</a>
+        <a href="list.html" class="active">Browse Tools</a>
+        <a href="creators.html">Creator Picks</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="list.html" class="btn btn-nav">Start Exploring</a>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container section">
+    <section class="section-head list-header">
+      <h1>Browse AI Tools</h1>
+      <p class="muted" id="resultsCount">Loading tools...</p>
+    </section>
+
+    <section class="filters" aria-label="Tool filters">
+      <label>
+        <span class="sr-only">Search tools by title</span>
+        <input id="searchInput" type="search" placeholder="Search by title..." autocomplete="off" />
+      </label>
+      <label>
+        <span class="sr-only">Filter by category</span>
+        <select id="categoryFilter">
+          <option value="all">All categories</option>
+        </select>
+      </label>
+      <label>
+        <span class="sr-only">Sort tools</span>
+        <select id="sortFilter">
+          <option value="title-asc">Sort: Title A–Z</option>
+          <option value="title-desc">Sort: Title Z–A</option>
+          <option value="id-asc">Sort: Oldest First</option>
+          <option value="id-desc">Sort: Newest First</option>
+        </select>
+      </label>
+      <label class="favorites-only">
+        <input id="favoritesOnly" type="checkbox" />
+        <span>Favorites only</span>
+      </label>
+    </section>
+
+    <section>
+      <div class="grid" id="toolsGrid" aria-live="polite"></div>
+      <div class="empty-state hidden" id="emptyState">
+        <h2>No tools found</h2>
+        <p>Try changing search terms or choosing a different category.</p>
+      </div>
+      <div class="load-more-wrap" id="infiniteLoaderWrap">
+        <div id="infiniteLoader" class="infinite-loader hidden" aria-live="polite">Loading more tools…</div>
+      </div>
+      <div id="listSentinel" aria-hidden="true"></div>
+    </section>
+
+    <section style="margin: 40px 0;">
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6875637223271831"
+           crossorigin="anonymous"></script>
+      <!-- Ad1(Square) -->
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-6875637223271831"
+           data-ad-slot="6502079768"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-wrap">
+      <p>© <span id="year"></span> m2zpicks</p>
+      <nav aria-label="Footer links">
+        <a href="about.html">About</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@16/dist/iife/sdk.js"></script>
+  <script src="appwrite.js"></script>
+  <script src="script.js?v=20260502"></script>
+  <script src="gift.js?v=20260314"></script>
+</body>
+</html>

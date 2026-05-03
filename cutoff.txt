@@ -1,0 +1,549 @@
+cat > /home/claude/build_final.py << 'PYEOF'
+import re
+
+content = open('/mnt/user-data/uploads/tools.js').read()
+
+# Get existing real titles (ids 1-299)
+pattern = r'\{[^{}]*?id:\s*(\d+),[^{}]*?title:\s*"([^"]+)"[^{}]*?\}'
+matches = re.findall(pattern, content, re.DOTALL)
+existing_titles = set()
+for m in matches:
+    if int(m[0]) <= 299:
+        existing_titles.add(m[1].lower().strip())
+
+# All new tools
+new_tools_data = [
+    ("AI Assistant", "Google Gemini", "Google Gemini is Google's most capable multimodal AI model, able to reason across text, images, audio, video, and code. It powers Google Search, Google Workspace, and the Gemini chatbot, offering a range of model sizes from Gemini Nano for on-device tasks to Gemini Ultra for complex enterprise reasoning. With native multimodality and deep integration into Google's ecosystem, it's one of the most versatile AI systems available.", "https://gemini.google.com"),
+    ("AI Assistant", "Mistral AI", "Mistral AI is a French AI company offering a family of open-weight and commercial large language models known for their efficiency and high performance relative to size. Their models including Mistral 7B, Mixtral 8x7B, and Mistral Large compete with much larger models at a fraction of the computational cost. Mistral AI is popular with developers and enterprises who want state-of-the-art AI without vendor lock-in.", "https://mistral.ai"),
+    ("AI Assistant", "Grok by xAI", "Grok is xAI's conversational AI assistant, developed by Elon Musk's AI company. What sets Grok apart is its real-time access to information through X (Twitter) and its witty, unfiltered personality. It's designed to answer almost anything with a sense of humor and directness, making it a unique alternative to more conservative AI assistants. Grok is available to X Premium subscribers.", "https://grok.x.ai"),
+    ("AI Assistant", "Meta AI", "Meta AI is Meta's flagship AI assistant powered by the Llama 3 model family, integrated across Facebook, Instagram, WhatsApp, and Messenger. It can answer questions, generate images, help with tasks, and engage in conversations directly within social apps you already use every day. Meta AI is free to use and represents one of the most widely distributed AI assistants in the world.", "https://meta.ai"),
+    ("AI Assistant", "Cohere Command", "Cohere Command is an enterprise-grade large language model optimized for business use cases like retrieval-augmented generation, document summarization, and customer-facing chatbots. Cohere focuses on building AI that works reliably in enterprise environments with strong data security, low latency, and fine-tuning capabilities. It's widely used by companies integrating AI into their products and internal tools.", "https://cohere.com"),
+    ("Developer Tools", "Cursor AI", "Cursor is an AI-first code editor built on VS Code that deeply integrates GPT-4 and Claude to assist with coding workflows. Unlike traditional Copilot-style autocomplete, Cursor understands your entire codebase, allowing you to chat with your code, ask questions about functions, and make multi-file edits with natural language instructions. It has become one of the most popular tools for AI-assisted software development.", "https://cursor.sh"),
+    ("Developer Tools", "Devin AI", "Devin is the world's first fully autonomous AI software engineer, developed by Cognition AI. It can plan and execute complex engineering tasks end-to-end: writing code, running tests, fixing bugs, deploying applications, and even learning new technologies on the fly. Devin represents a major leap beyond code completion tools, acting as an independent engineering collaborator capable of completing entire software projects.", "https://www.cognition.ai"),
+    ("Developer Tools", "Codeium", "Codeium is a free AI coding assistant that provides lightning-fast code completions, chat, and search across 70+ programming languages and 40+ editors. Unlike many competitors, Codeium has a generous free tier with no usage limits and is trusted by over a million developers. It integrates seamlessly with VS Code, JetBrains, Vim, and most popular development environments.", "https://codeium.com"),
+    ("Developer Tools", "Amazon CodeWhisperer", "Amazon CodeWhisperer is AWS's AI coding companion that generates real-time code suggestions, scans for security vulnerabilities, and references open-source code with proper attribution. It's deeply integrated with AWS services, making it particularly valuable for cloud developers building on the AWS ecosystem. The individual tier is free, while the Professional tier adds organizational controls and enhanced security scanning.", "https://aws.amazon.com/codewhisperer"),
+    ("Developer Tools", "Sourcegraph Cody", "Sourcegraph Cody is an AI coding assistant that has full context of your entire codebase, not just the file you're editing. By indexing your repositories, Cody can answer deep questions about how your system works, generate code that matches your patterns, and help onboard new developers faster. It supports multiple AI backends including Claude and GPT-4, giving teams flexibility in their AI choices.", "https://sourcegraph.com/cody"),
+    ("Developer Tools", "Aider", "Aider is an open-source AI pair programming tool that works in your terminal alongside git. It can edit multiple files simultaneously, understand your codebase through git history, and implement features or fix bugs described in plain language. Aider works with GPT-4, Claude, and other models, and has become a favorite among developers who prefer a command-line-first workflow for AI-assisted coding.", "https://aider.chat"),
+    ("Developer Tools", "Phind", "Phind is an AI search engine built specifically for developers, providing detailed technical answers with working code examples. It searches the web and technical documentation in real time, synthesizing accurate solutions to programming questions without the hallucinations common in general-purpose AI tools. Phind supports GPT-4-level reasoning and is optimized for debugging, architecture questions, and code explanations.", "https://www.phind.com"),
+    ("Developer Tools", "Continue.dev", "Continue.dev is an open-source AI coding assistant that lets you connect any LLM to your IDE — whether it's Claude, GPT-4, a local Ollama model, or your own fine-tuned model. This flexibility makes it ideal for teams with strict data privacy requirements who want AI coding assistance without sending code to third-party APIs. Its deep IDE integration supports tab completion, inline edits, and a full chat interface.", "https://continue.dev"),
+    ("Video Generation", "Sora by OpenAI", "Sora is OpenAI's groundbreaking text-to-video AI model capable of generating cinematic-quality videos up to a minute long from text descriptions. It demonstrates an unprecedented understanding of physical reality, complex scenes, and camera movements that previous video generation models could not match. Sora represents a major step toward AI that can simulate the physical world.", "https://openai.com/sora"),
+    ("Video Generation", "Kling AI", "Kling AI is a powerful text-to-video and image-to-video generation platform developed by Kuaishou Technology that produces cinematic-quality videos with realistic physics and motion. It competes directly with Sora and Runway Gen-3, offering 5-second and 10-second video clips with impressive prompt adherence and visual quality. Kling has become popular for filmmakers, ad creators, and social media producers.", "https://klingai.com"),
+    ("Video Generation", "Hailuo AI", "Hailuo AI (MiniMax Video-01) is a Chinese AI video generation model that produces high-quality, realistic videos from text and image prompts. It is known for exceptional subject consistency, smooth motion, and a cinematic aesthetic that rivals top Western video generation tools. Hailuo is free to use with daily credits and has rapidly gained popularity in the video generation community.", "https://hailuoai.video"),
+    ("Video Generation", "Luma Dream Machine", "Luma Dream Machine is a fast, high-quality AI video generation model from Luma AI that creates realistic and imaginative videos from text and image prompts. It's known for generating fluid motion, consistent characters, and vivid imagery in seconds. Dream Machine is accessible via web and API, making it useful for both consumer creators and developers building video-powered applications.", "https://lumalabs.ai/dream-machine"),
+    ("Video Generation", "Wan Video", "Wan Video is a state-of-the-art open-source video generation model from Alibaba's Wan team that achieves industry-leading quality on text-to-video and image-to-video tasks. It supports multiple visual styles, long video generation, and advanced camera control, making it one of the most capable open-source video generation models available. Developers can run it locally or via cloud APIs.", "https://wan.video"),
+    ("Video Generation", "CogVideoX", "CogVideoX is an open-source video generation model from Zhipu AI that produces high-quality videos from text prompts. It features an expert transformer architecture and 3D variational autoencoder for capturing spatiotemporal dynamics with exceptional fidelity. CogVideoX is available on Hugging Face and has become a popular foundation model for researchers and developers building video applications.", "https://github.com/THUDM/CogVideo"),
+    ("Image Generation", "Ideogram AI", "Ideogram AI is a text-to-image generation platform with an exceptional ability to render accurate, stylized text within images — a notoriously difficult challenge for AI art tools. Beyond typography, it excels at photorealistic and illustrative styles with a simple, intuitive interface. Ideogram has rapidly become popular with designers creating logos, posters, social graphics, and promotional materials.", "https://ideogram.ai"),
+    ("Image Generation", "Flux by Black Forest Labs", "Flux is a state-of-the-art family of text-to-image models developed by Black Forest Labs, founded by former Stable Diffusion researchers. Flux models deliver exceptional image quality, prompt adherence, and diversity, setting new standards for open-weight image generation. Available in Pro, Dev, and Schnell variants, Flux powers many leading AI image platforms and can be run locally for full creative control.", "https://blackforestlabs.ai"),
+    ("Image Generation", "Leonardo AI", "Leonardo AI is a professional-grade AI image generation platform built for game developers, concept artists, and creative studios. It offers fine-tuned models for characters, environments, and concept art, along with a canvas editor, image-to-image tools, and motion generation. Leonardo's training pipeline lets teams create custom models on their own visual style, making it one of the most powerful tools for consistent brand imagery.", "https://leonardo.ai"),
+    ("Image Generation", "Playground AI", "Playground AI is a free-to-use AI image creation tool that combines multiple generative models including Stable Diffusion, DALL-E, and its own proprietary Playground v3 model. It offers a generous free tier, an intuitive canvas-based editor, and advanced controls like image mixing, in-painting, and style transfer. It's popular for product mockups, social content, and creative exploration.", "https://playground.com"),
+    ("Image Generation", "Freepik Pikaso", "Freepik Pikaso is an AI image generation tool that enables real-time text-to-image creation with a unique sketch-to-image feature. Backed by Freepik's massive design asset library, it integrates AI generation with professional stock assets in a single workflow. It's particularly valuable for designers who want to quickly visualize concepts and iterate on them in a professional creative environment.", "https://www.freepik.com/pikaso"),
+    ("Image Generation", "Recraft AI", "Recraft AI is a professional design tool that generates high-quality vector illustrations, icons, and brand assets using AI. It stands out for producing SVG output, maintaining visual brand consistency across generations, and offering fine-grained style controls for designers. Creative teams use Recraft to build consistent icon libraries, UI illustrations, and marketing assets that match their exact brand guidelines.", "https://www.recraft.ai"),
+    ("Image Editing", "Magnific AI", "Magnific AI is a groundbreaking AI upscaling and enhancement tool that doesn't just enlarge images — it reimagines and adds hallucinated detail to create stunningly photorealistic high-resolution results. Unlike traditional upscalers, Magnific uses diffusion models to generate plausible new textures and details, making even low-resolution images look like professional photographs. It's widely used by photographers, retouchers, and AI artists.", "https://magnific.ai"),
+    ("Image Editing", "Lensa AI", "Lensa AI is a popular AI photo editing and portrait enhancement app known for its Magic Avatars feature, which generates artistic, stylized portraits from your selfies. Beyond avatars, it offers AI-powered photo retouching, background replacement, and face retouching tools that produce stunning results in seconds. Lensa has been downloaded over 50 million times and remains one of the most popular AI photo apps.", "https://prisma-ai.com/lensa"),
+    ("Image Editing", "Photoroom", "Photoroom is an AI-powered photo editing app and API that removes backgrounds, generates new scenes, and creates professional product photos with a single tap. It's used by over 100 million users and is the go-to tool for e-commerce sellers, social media creators, and small businesses who need professional product images without a photography studio. Its batch editing feature processes hundreds of images automatically.", "https://www.photoroom.com"),
+    ("Image Editing", "Canva Magic Edit", "Canva Magic Edit is Canva's AI-powered in-image editing suite that allows users to add, remove, or replace objects within any image using simple text descriptions. As part of Canva's Magic Studio, it brings professional-grade generative editing to non-designers right inside the world's most popular design platform. It lowers the barrier to creative photo manipulation dramatically.", "https://www.canva.com/magic-edit"),
+    ("Image Editing", "Krea AI", "Krea AI is a real-time AI image generation and enhancement platform that offers live canvas generation, upscaling, and a unique enhance feature that adds cinematic quality to rough concepts. Artists and designers use Krea to rapidly iterate on visual ideas in real time, with changes appearing instantly as they sketch or type. It also offers AI video generation and training custom image models.", "https://www.krea.ai"),
+    ("Writing & Content", "Wordvice AI", "Wordvice AI is a comprehensive AI writing assistant that provides grammar correction, sentence restructuring, and style improvements specifically optimized for academic and professional writing. Developed by linguists and academic editors, it goes beyond basic grammar checking to enhance clarity, concision, and formal register. It's widely used by researchers, graduate students, and ESL writers who need polished, publication-ready documents.", "https://wordvice.ai"),
+    ("Writing & Content", "Sudowrite", "Sudowrite is an AI writing tool designed specifically for fiction writers, offering features like character development, scene expansion, plot suggestions, and a describe tool that generates rich sensory details for any scene. Unlike generic writing assistants, Sudowrite understands narrative craft and helps authors overcome writer's block with creative, story-aware suggestions. It's a favorite among novelists and screenwriters.", "https://www.sudowrite.com"),
+    ("Writing & Content", "NovelAI", "NovelAI is a subscription-based AI storytelling platform that lets authors generate and co-write fiction in virtually any genre and style. It features a suite of text generation models trained specifically on literature, plus AI image generation for character visualization. NovelAI also offers a unique memory and lorebook system that keeps long narratives consistent across many thousands of words.", "https://novelai.net"),
+    ("Writing & Content", "Paragraph AI", "Paragraph AI is a mobile-first AI writing assistant that helps users compose, respond to, and improve text in any app on their phone. Whether you're replying to emails, drafting social posts, or writing messages, Paragraph AI provides contextually appropriate suggestions with one tap. Its keyboard integration makes it one of the most practical AI writing tools for on-the-go professionals.", "https://paragraphai.com"),
+    ("Productivity", "Reclaim AI", "Reclaim AI is an intelligent calendar management tool that automatically schedules tasks, habits, and meetings in the optimal slots based on your priorities and energy levels. It integrates with Google Calendar, Todoist, Asana, and Slack to create a dynamic schedule that defends your focus time while keeping you flexible for urgent requests. Teams using Reclaim report saving hours per week on scheduling overhead.", "https://reclaim.ai"),
+    ("Productivity", "Superhuman", "Superhuman is the fastest email experience ever made, with AI features that help you achieve inbox zero in record time. Its AI Triage feature automatically identifies your most important emails, while AI Compose helps you draft replies in seconds. Used by executives, founders, and top performers, Superhuman boasts that users achieve inbox zero twice as fast with dramatically less stress.", "https://superhuman.com"),
+    ("Productivity", "Magical AI", "Magical AI is a free Chrome extension that uses AI to eliminate repetitive typing tasks by expanding short custom shortcuts into full paragraphs of personalized text. It connects to your tools like Salesforce, Gmail, and LinkedIn to autofill data directly into forms and messages. Sales teams and customer support agents use Magical to save hours per week on repetitive outreach and data entry.", "https://www.getmagical.com"),
+    ("Productivity", "Tana AI", "Tana is a next-generation outliner and productivity tool that treats every piece of information as a structured node, enabling powerful AI-assisted organization and retrieval. Its Supertags feature creates typed databases within your notes, allowing you to manage tasks, CRM contacts, meeting notes, and research in a unified, AI-searchable system. Tana is rapidly gaining traction among power users seeking a smarter personal knowledge management tool.", "https://tana.inc"),
+    ("Productivity", "Capacities", "Capacities is an AI-powered knowledge management tool that treats your notes as objects — people, books, articles, quotes — rather than plain text documents. This object-oriented approach enables powerful connections between ideas and automatic AI tagging that makes your knowledge base truly searchable and interconnected. It's gaining a loyal following among researchers, writers, and knowledge workers who want a smarter PKM system.", "https://capacities.io"),
+    ("Search & Research", "Consensus App", "Consensus is an AI-powered academic search engine that searches across 200 million scientific papers and synthesizes the research consensus on any question. Instead of just returning links, it tells you what the science actually says with a percentage of papers supporting a claim. Researchers, students, doctors, and curious thinkers use it to get evidence-based answers backed by peer-reviewed literature.", "https://consensus.app"),
+    ("Search & Research", "Elicit", "Elicit is an AI research assistant that helps researchers find, summarize, and analyze academic literature at scale. It automates the systematic review process by extracting key data from papers, comparing findings across studies, and identifying research gaps. Unlike Google Scholar, Elicit understands your research question and surfaces the most relevant papers even when they don't contain your exact search terms.", "https://elicit.org"),
+    ("Search & Research", "Scite AI", "Scite.ai is an AI-powered research tool that shows how scientific papers have been cited — crucially distinguishing between supporting and contrasting citations. This lets researchers quickly assess the reliability of a study and understand how its conclusions have held up over time. With over 1.2 billion citation statements indexed, Scite helps scientists make more informed decisions about which research to trust.", "https://scite.ai"),
+    ("Search & Research", "Semantic Scholar", "Semantic Scholar is a free, AI-powered academic search engine from the Allen Institute for AI that uses natural language processing to understand research intent and surface the most relevant papers. Its TLDR summaries, citation graphs, and AI-generated paper digests make it one of the most sophisticated free tools for navigating scientific literature. It indexes over 200 million academic papers across all fields.", "https://www.semanticscholar.org"),
+    ("Search & Research", "Globe Explorer", "Globe Explorer is an AI search and research tool that automatically expands your search query into an interconnected map of related concepts, sources, and ideas. Unlike linear search results, Globe presents information as a visual knowledge graph that makes it easy to explore a topic comprehensively and discover connections you might have missed. It's particularly valuable for research, writing, and learning new domains.", "https://explorer.globe.engineer"),
+    ("Search & Research", "Exa AI", "Exa (formerly Metaphor Systems) is a neural search engine that understands natural language queries the way a human researcher would, rather than matching keywords. It's designed for finding high-quality, specific content — such as the best essays on a topic or startups working in a specific domain. Developers use its API to add semantic search capabilities to their applications and AI agents.", "https://exa.ai"),
+    ("Customer Service", "Intercom Fin", "Intercom Fin is an AI customer service agent powered by GPT-4 that autonomously resolves customer support tickets with high accuracy. Unlike chatbots that just triage queries, Fin actually answers questions from your knowledge base, escalating only the cases it cannot resolve. Companies report that Fin resolves over 50% of support conversations instantly, dramatically reducing costs and improving customer satisfaction scores.", "https://www.intercom.com/fin"),
+    ("Customer Service", "Freshdesk Freddy AI", "Freshdesk Freddy AI is Freshworks' intelligent customer service AI that automates ticket routing, suggests responses, and provides agents with real-time guidance during conversations. Freddy AI learns from your historical ticket data to continuously improve its suggestions and automate repetitive workflows. It integrates natively across Freshworks' suite of CRM, IT service, and customer support products.", "https://www.freshworks.com/freshdesk/freddy-ai"),
+    ("Customer Service", "Forethought AI", "Forethought AI is an AI customer support platform that uses predictive intelligence to triage, route, and resolve support tickets automatically. Its Solve product handles repetitive queries autonomously, while its Assist product gives human agents AI-generated response suggestions in real time. Forethought integrates with Zendesk, Salesforce, and other leading helpdesks to supercharge existing support workflows.", "https://forethought.ai"),
+    ("Customer Service", "Tidio AI", "Tidio is a customer communication platform that combines live chat, email, and AI-powered chatbots into a single, easy-to-use interface for small and medium businesses. Its Lyro AI chatbot automatically handles up to 70% of customer inquiries using conversational AI trained on your data. Tidio is trusted by over 300,000 businesses for combining the warmth of live chat with the scale of AI automation.", "https://www.tidio.com"),
+    ("Healthcare & Wellness", "Suki AI", "Suki AI is a voice-enabled AI assistant for physicians that listens to doctor-patient conversations and automatically generates clinical notes, dramatically reducing documentation time. Physicians using Suki report saving over two hours per day on administrative tasks, allowing them to focus on patient care. Suki integrates with major EHR systems like Epic, Cerner, and Athena to fit seamlessly into clinical workflows.", "https://www.suki.ai"),
+    ("Healthcare & Wellness", "Nabla Copilot", "Nabla is an AI copilot for healthcare providers that transcribes medical consultations in real time and generates structured clinical notes automatically. It supports dozens of medical specialties and integrates with over 30 EHR systems, making it one of the most versatile AI documentation tools in clinical practice. Nabla has been used in millions of medical consultations and is trusted by healthcare systems globally.", "https://www.nabla.com"),
+    ("Healthcare & Wellness", "Viz.ai", "Viz.ai is a clinical AI platform that analyzes medical imaging in real time and immediately alerts care teams when it detects critical conditions like stroke, pulmonary embolism, or internal bleeding. By dramatically reducing the time from scan to treatment, Viz.ai saves lives in time-sensitive emergencies. It's cleared by the FDA and deployed in hundreds of hospitals, coordinating care teams and accelerating the chain of diagnosis.", "https://www.viz.ai"),
+    ("Healthcare & Wellness", "Ada Health", "Ada Health is an AI-powered symptom assessment and health guidance app used by over 14 million people worldwide. Users describe their symptoms in a conversational interface and Ada's AI asks follow-up questions to provide a personalized assessment and recommended next steps. With accuracy comparable to physicians in clinical studies, Ada is used by hospitals, insurers, and patients for triage and health navigation.", "https://ada.com"),
+    ("Legal", "Harvey AI", "Harvey AI is a generative AI platform built specifically for law firms and legal departments, trained on legal data with the expertise of experienced attorneys. It assists with contract analysis, due diligence, legal research, and drafting across practice areas including M&A, litigation, and compliance. Top global law firms use Harvey to dramatically accelerate legal work while maintaining the quality standards the profession demands.", "https://www.harvey.ai"),
+    ("Legal", "Casetext CoCounsel", "Casetext CoCounsel (acquired by Thomson Reuters) is an AI legal assistant powered by GPT-4 that completes legal research, document review, deposition preparation, and contract analysis in a fraction of the time it takes human attorneys. It has been validated by legal professionals for accuracy and reliability on complex legal tasks. CoCounsel represents a major advance in making high-quality legal work faster and more accessible.", "https://casetext.com"),
+    ("Legal", "Lexis+ AI", "Lexis+ AI is LexisNexis's generative AI legal research assistant, integrated with the world's largest database of legal content including cases, statutes, regulations, and secondary sources. It generates comprehensive research memos, drafts legal documents, and summarizes cases with full citations — all verified against authoritative legal sources. It's trusted by thousands of attorneys, judges, and legal researchers worldwide.", "https://www.lexisnexis.com/lexis-plus-ai"),
+    ("Legal", "Ironclad AI", "Ironclad is an AI-powered contract lifecycle management platform that streamlines every stage of the contract process from request to signature to renewal. Its AI capabilities extract key data from contracts automatically, flag risky clauses, and suggest standard language alternatives, reducing the time legal teams spend on routine contract work. Ironclad is used by leading companies including Lyft, Dropbox, and L'Oreal.", "https://ironcladapp.com"),
+    ("Finance & Fintech", "AlphaSense", "AlphaSense is an AI-powered market intelligence platform that searches and analyzes millions of financial documents — earnings calls, SEC filings, news, analyst reports, and broker research — in seconds. Its Smart Synonyms technology understands financial language nuance, surfacing insights that keyword searches miss. Asset managers, investment banks, and Fortune 500 companies rely on it for competitive intelligence and investment research.", "https://www.alpha-sense.com"),
+    ("Finance & Fintech", "Brex AI", "Brex is a financial technology company whose AI-powered spend management platform helps companies automate expense reports, enforce spending policies, and gain real-time visibility into company finances. Its AI analyzes receipts automatically, categorizes transactions, and flags policy violations without manual review. Brex is used by thousands of startups and growth-stage companies to manage corporate spending at scale.", "https://www.brex.com"),
+    ("Finance & Fintech", "Kensho AI", "Kensho (a subsidiary of S&P Global) is an AI analytics platform that uses machine learning to analyze vast amounts of financial and economic data to produce insights and predictions. It helps financial professionals answer complex quantitative questions in natural language, dramatically accelerating research and analysis workflows. Kensho's technology powers S&P Global's AI-driven products for Wall Street professionals.", "https://www.kensho.com"),
+    ("Finance & Fintech", "Numerai", "Numerai is a unique AI-powered hedge fund that runs a global tournament where data scientists submit machine learning models to predict stock market returns. The best-performing models contribute to Numerai's meta-model that manages real capital. By crowdsourcing AI predictions from thousands of independent data scientists, Numerai builds a more robust and diversified investment model than any single team could produce.", "https://numer.ai"),
+    ("HR & Recruiting", "Eightfold AI", "Eightfold AI is a talent intelligence platform that uses deep learning to match candidates to roles, identify skills adjacencies, and enable internal mobility within organizations. Unlike traditional keyword-matching ATS systems, Eightfold understands the actual skills and potential of candidates, helping companies hire more equitably and effectively. Its Career Hub product helps employees chart their career paths based on real opportunity data.", "https://eightfold.ai"),
+    ("HR & Recruiting", "Beamery", "Beamery is an AI talent lifecycle management platform that helps large enterprises attract, develop, and retain talent with intelligence. Its AI analyzes millions of data points about candidates, employees, and market trends to predict who will perform well, who is at risk of leaving, and where talent gaps will emerge. Companies use Beamery to build a proactive, data-driven talent strategy rather than reacting to vacancies.", "https://beamery.com"),
+    ("HR & Recruiting", "Textio", "Textio is an AI-powered writing platform for HR that analyzes and improves job postings, performance reviews, and workplace communications to make them more inclusive and effective. Its AI learns from hiring outcome data to predict which phrases attract or deter specific demographic groups, helping teams write job descriptions that reach more diverse talent. Companies using Textio see faster time-to-fill and more diverse applicant pools.", "https://textio.com"),
+    ("HR & Recruiting", "Findem AI", "Findem is an AI talent search and analytics platform that uses 3D data — combining people data with company data over time — to give recruiters a comprehensive view of the talent landscape. It enables hyper-targeted talent searches using hundreds of attributes simultaneously, finding candidates that traditional Boolean searches would miss. Recruiting teams use Findem to source passive candidates and build talent pipelines proactively.", "https://findem.ai"),
+    ("Education", "Khanmigo", "Khanmigo is Khan Academy's AI tutor powered by GPT-4 that provides personalized Socratic tutoring across all subjects. Rather than giving students answers directly, Khanmigo asks guiding questions that help students develop genuine understanding. It also helps teachers with lesson planning, feedback on student work, and generating custom practice problems — representing one of the most thoughtful AI deployments in education.", "https://www.khanacademy.org/khan-labs"),
+    ("Education", "Quizlet AI", "Quizlet's AI features transform any content into adaptive flashcard sets, practice tests, and personalized study guides automatically. Its AI identifies your weakest areas and adjusts study sessions accordingly, making learning more efficient. With over 60 million users, Quizlet's Learn and Magic Notes features represent AI-powered study tools at a massive scale, helping students from middle school through graduate programs.", "https://quizlet.com"),
+    ("Education", "Photomath", "Photomath is a math learning app that uses AI and augmented reality to solve math problems from photos of handwritten or printed equations. Beyond just providing answers, it shows step-by-step animated solutions that explain how to solve each type of problem. Downloaded over 300 million times, Photomath is one of the most popular educational AI apps ever made.", "https://photomath.com"),
+    ("Education", "Brainly", "Brainly is an AI-powered peer learning platform and homework helper that combines community-generated explanations with AI tutoring to help students understand difficult concepts. Its AI tutor provides instant, step-by-step explanations for math, science, and humanities questions, while a community of millions of students and verified experts adds human depth to learning. Brainly serves over 350 million students globally.", "https://brainly.com"),
+    ("Education", "Synthesis AI", "Synthesis is an AI-powered learning platform that originated from SpaceX's school for astronaut children, now available to all students. It uses games and collaborative problem-solving challenges to build mathematical reasoning, systems thinking, and executive function skills. Synthesis's AI adapts each challenge to the optimal difficulty level for each student, creating a highly personalized and engaging learning experience.", "https://www.synthesis.com"),
+    ("Music Generation", "Suno AI", "Suno AI is a breakthrough music generation platform that creates complete, high-quality songs — with realistic vocals, lyrics, and production — from simple text prompts. Users can generate full tracks in any genre within seconds, from country to hip-hop to classical, with surprisingly professional results. Suno has democratized music creation for non-musicians while also becoming a tool for rapid prototyping for professional producers.", "https://suno.ai"),
+    ("Music Generation", "Udio", "Udio is an AI music generation platform co-founded by former Google DeepMind researchers that creates studio-quality music from text descriptions. It offers fine-grained control over tempo, style, mood, and instrumentation, producing tracks with professional-level production quality. Udio has become popular among content creators, game developers, and musicians looking for a quick way to generate original, royalty-free music.", "https://www.udio.com"),
+    ("Music Generation", "Stable Audio", "Stable Audio is Stability AI's music generation platform that produces high-quality, long-form audio tracks from text prompts, including full songs with stems, sound effects, and ambient soundscapes. Trained on a licensed dataset from top music distributors, Stable Audio focuses on creating professional-grade audio that creators can use commercially without copyright concerns.", "https://stability.ai/stable-audio"),
+    ("Music Generation", "AIVA", "AIVA (Artificial Intelligence Virtual Artist) is an AI music composition platform that creates original orchestral and cinematic music for films, games, and advertising. AIVA is officially recognized as a composer by SACEM, making it one of the first AI systems to have its musical creations legally attributed to it. Content creators use AIVA to produce professional-quality soundtracks without the cost of hiring a live composer.", "https://www.aiva.ai"),
+    ("Music Generation", "Loudly", "Loudly is an AI music creation platform offering a vast library of AI-generated stems, loops, and complete tracks that musicians and content creators can use, remix, and license. Its AI Music Engine analyzes your mood and style preferences to recommend music that fits your project. With both a studio platform and API, Loudly serves individual creators, developers, and enterprise clients.", "https://www.loudly.com"),
+    ("Social Media", "Predis AI", "Predis.ai is an AI social media content creation platform that generates complete posts — including captions, hashtags, and graphics — for Instagram, LinkedIn, TikTok, and more. Its competitive analysis feature lets you analyze competitor content strategies and generate posts designed to outperform them. Agencies and solopreneurs use Predis to maintain a consistent, high-quality social presence with minimal effort.", "https://predis.ai"),
+    ("Social Media", "Lately AI", "Lately AI analyzes your long-form content — blog posts, white papers, podcasts, videos — and automatically generates dozens of social media posts optimized for engagement. Its AI learns your unique brand voice by analyzing your best-performing historical content, ensuring new posts sound authentically like you. Marketing teams use Lately to get dramatically more mileage from every piece of content they create.", "https://www.lately.ai"),
+    ("Social Media", "Flick AI", "Flick AI is a social media marketing tool that uses AI to generate captions, suggest hashtags, plan content calendars, and analyze performance across Instagram, TikTok, LinkedIn, and Facebook. Its AI Caption Writer is trained on high-performing social content to produce captions that drive engagement. Content creators and marketing teams use Flick to reduce the time spent on social media from hours to minutes.", "https://www.flick.social"),
+    ("Social Media", "Metricool", "Metricool is an all-in-one AI-powered social media analytics and scheduling platform that provides deep performance insights across all major social networks. Its AI content suggestions, optimal timing recommendations, and competitor benchmarking help social media managers make data-driven decisions. Metricool is trusted by over 1 million marketers and agencies worldwide for its comprehensive analytics and ease of use.", "https://metricool.com"),
+    ("Data & Analytics", "Julius AI", "Julius AI is a conversational data analysis tool that lets you upload datasets and ask questions in plain English, receiving instant charts, summaries, and insights. Unlike complex BI tools that require SQL or data science expertise, Julius makes sophisticated data analysis accessible to everyone. It supports CSV, Excel, Google Sheets, and database connections, making it versatile for analysts and non-technical business users alike.", "https://julius.ai"),
+    ("Data & Analytics", "Akkio", "Akkio is a no-code AI platform that enables business teams to build predictive models, generate insights, and automate decisions without data science expertise. Users connect their data, choose a prediction goal like churn or lead scoring, and Akkio automatically trains and deploys a model in minutes. It's used by agencies, consultants, and business analysts who need AI-powered predictions without building a data science team.", "https://www.akkio.com"),
+    ("Data & Analytics", "Bardeen AI", "Bardeen AI is a powerful automation and data enrichment platform that connects your web browser to hundreds of apps, automating research, data collection, and repetitive workflows. Its AI Magic Box feature lets you describe an automation in natural language and Bardeen builds it automatically. Sales, recruiting, and research teams use Bardeen to eliminate hours of manual web research and data entry every week.", "https://www.bardeen.ai"),
+    ("Data & Analytics", "Polymer AI", "Polymer AI is a no-code data exploration platform that turns spreadsheets and CSV files into interactive AI-powered dashboards and visual databases. Unlike traditional BI tools, Polymer requires zero technical setup — simply upload your data and Polymer's AI instantly generates charts, filters, and insights. It's used by teams across sales, marketing, and operations who need to explore data without waiting for a data analyst.", "https://www.polymersearch.com"),
+    ("Data & Analytics", "Obviously AI", "Obviously AI is a no-code predictive analytics platform that allows business users to build, deploy, and explain machine learning models in minutes. You simply upload your historical data, select what you want to predict, and Obviously AI handles model training, evaluation, and deployment automatically. It generates plain-language explanations of its predictions, making AI decision support accessible to non-technical stakeholders.", "https://www.obviously.ai"),
+    ("Cybersecurity", "Darktrace", "Darktrace is an AI cybersecurity platform that uses self-learning AI to detect and respond to novel cyber threats in real time across cloud, network, email, and endpoint environments. Its Autonomous Response capability can contain attacks within seconds — even threats that have never been seen before — without disrupting business operations. Darktrace is deployed in over 9,000 organizations worldwide including critical infrastructure and Fortune 500 companies.", "https://darktrace.com"),
+    ("Cybersecurity", "CrowdStrike Falcon AI", "CrowdStrike Falcon is an AI-native cybersecurity platform that uses behavioral AI to detect and stop breaches on endpoints, cloud workloads, and identities. Its Threat Graph processes trillions of security events daily to build predictive indicators of attack, stopping sophisticated threats before they cause damage. CrowdStrike protects over 20,000 customers including major governments and global enterprises.", "https://www.crowdstrike.com"),
+    ("Cybersecurity", "SentinelOne Purple AI", "SentinelOne Purple AI is a generative AI security analyst that translates complex threat hunting queries into actionable investigations in natural language. Security teams can describe what they're looking for in plain English and Purple AI automatically queries the platform's data lake to surface threats, correlate events, and generate investigation reports. It dramatically reduces the expertise barrier for advanced threat hunting.", "https://www.sentinelone.com/platform/purple-ai"),
+    ("Cybersecurity", "Vectra AI", "Vectra AI is a network detection and response platform that uses AI to detect attacker behaviors hiding in network traffic, cloud activity, and identity systems. Its Attack Signal Intelligence technology prioritizes the most urgent threats based on both attacker behavior and business context, reducing alert fatigue and helping security teams focus on real incidents. Vectra is trusted by enterprises and public sector organizations globally.", "https://www.vectra.ai"),
+    ("Cybersecurity", "Snyk AI", "Snyk is a developer security platform that uses AI to find and fix vulnerabilities in code, open-source dependencies, containers, and infrastructure as code. Its AI code security feature detects security issues in real time as developers write code, providing fix suggestions that integrate directly into the development workflow. Snyk is used by over 2 million developers and thousands of enterprise security teams.", "https://snyk.io"),
+    ("Design", "Looka", "Looka is an AI-powered logo maker and brand identity platform that generates professional logos, business cards, and brand kits from a simple questionnaire about your business. Its AI learns your style preferences as you click through logo variations and produces a fully customizable brand identity in minutes. Looka has helped over 20 million entrepreneurs and small businesses launch with a professional visual identity.", "https://looka.com"),
+    ("Design", "Khroma", "Khroma is an AI color palette tool that learns your personal color preferences and generates infinite palettes, typography combinations, and gradient ideas you'll love. After rating 50 colors, its neural network builds a personalized color model that generates only combinations you'll find appealing — dramatically speeding up the color selection phase of any design project.", "https://www.khroma.co"),
+    ("Design", "Framer AI", "Framer AI is a website builder that generates complete, publish-ready websites from text descriptions in seconds. Unlike template-based builders, Framer AI creates custom designs with responsive layouts, animations, and real content that reflect your specific brand and requirements. Designers and founders use it to go from idea to live website in minutes, then customize further using Framer's powerful visual editor.", "https://www.framer.com/ai"),
+    ("Design", "Visily AI", "Visily AI is an AI-powered UI design tool that converts screenshots, sketches, and text descriptions into editable wireframes and high-fidelity mockups. It's designed specifically to make product design accessible to non-designers, helping product managers, founders, and developers create professional-looking UI designs without design skills. Its AI component library and auto-layout features make iterating on designs fast and intuitive.", "https://www.visily.ai"),
+    ("Sales & CRM", "Gong AI", "Gong is an AI revenue intelligence platform that analyzes every sales call, email, and meeting to surface insights that improve team performance and win rates. Its AI identifies deal risks, coaching opportunities, and market trends from real customer conversations — giving sales leaders an unprecedented view into their pipeline. Companies using Gong report significant improvements in quota attainment and forecast accuracy.", "https://www.gong.io"),
+    ("Sales & CRM", "Chorus.ai", "Chorus by ZoomInfo is an AI-powered conversation intelligence platform that records, transcribes, and analyzes every sales call to identify winning behaviors and coaching moments. It automatically extracts action items, next steps, and competitor mentions from conversations, updating CRM records without manual data entry. Sales managers use Chorus to scale best practices across their teams and accelerate new rep ramp time.", "https://www.chorus.ai"),
+    ("Sales & CRM", "Outreach AI", "Outreach is a leading sales execution platform that uses AI to help sales teams build pipeline, execute their sales process, and forecast revenue with greater precision. Its AI features predict deal health, recommend optimal next actions, and generate personalized email sequences at scale. Over 6,000 companies including Zoom, Siemens, and McKesson trust Outreach to power their sales teams.", "https://www.outreach.io"),
+    ("Sales & CRM", "Apollo.io", "Apollo.io is a comprehensive AI sales intelligence and engagement platform combining a database of 275 million contacts with automated outreach, email sequencing, and AI writing assistance. Its AI scores leads, recommends prospects based on your ICP, and generates personalized emails that get replies. Trusted by over 160,000 companies, Apollo is one of the most complete sales tech solutions for prospecting and outreach.", "https://www.apollo.io"),
+    ("Sales & CRM", "Clay", "Clay is an AI-powered data enrichment and outreach automation platform that pulls contact data from 50+ sources and uses AI to write hyper-personalized cold emails at scale. Sales teams use Clay to research prospects, find email addresses, enrich CRM data, and generate personalized outreach that references specific details about each prospect's company, role, and recent activity.", "https://www.clay.com"),
+    ("Chatbot Builder", "Voiceflow", "Voiceflow is a collaborative platform for designing, building, and deploying AI chatbots and voice assistants at scale. Its visual canvas lets product teams prototype conversational AI experiences without code, while developers can extend functionality with custom integrations. Teams at IBM, Square, and JP Morgan use Voiceflow to build complex AI agents that handle thousands of customer interactions daily.", "https://www.voiceflow.com"),
+    ("Chatbot Builder", "Botpress", "Botpress is an open-source AI chatbot platform powered by GPT-4 that enables developers to build sophisticated, production-ready conversational AI agents. Its visual flow builder combined with LLM-powered natural language understanding makes it possible to build complex chatbots that can handle nuanced, multi-turn conversations. Botpress has an active developer community and extensive integration ecosystem.", "https://botpress.com"),
+    ("Chatbot Builder", "ManyChat", "ManyChat is the leading chat marketing platform that helps businesses grow through automated conversations on Instagram, Facebook Messenger, WhatsApp, and SMS. Its AI features help craft effective conversation flows, personalize messages based on user behavior, and optimize chatbot performance over time. Over 1 million businesses use ManyChat to generate leads, boost sales, and engage customers through messaging.", "https://manychat.com"),
+    ("Chatbot Builder", "Landbot", "Landbot is a no-code chatbot builder that creates highly engaging, conversational landing pages and customer journeys that replace traditional web forms. Its AI features include natural language understanding, dynamic content personalization, and GPT-4 integration for open-ended conversation handling. Marketing and sales teams use Landbot to increase lead conversion rates by making data collection feel like a natural conversation.", "https://landbot.io"),
+    ("Chatbot Builder", "Dante AI", "Dante AI allows anyone to create a custom AI chatbot trained on their own documents, website, and data — with no coding required. Simply upload your files or connect your website and Dante builds a GPT-4-powered chatbot that answers questions accurately based on your specific content. It's used for customer support, internal knowledge bases, and educational tools by thousands of organizations.", "https://dante-ai.com"),
+    ("Document AI", "Docsumo", "Docsumo is an intelligent document processing platform that extracts data from unstructured documents like invoices, bank statements, leases, and tax forms using AI. Its pre-trained models achieve high accuracy out of the box, and can be customized for specific document types with minimal training data. Financial services, insurance, and logistics companies use Docsumo to eliminate manual document data entry at scale.", "https://www.docsumo.com"),
+    ("Document AI", "Rossum", "Rossum is an AI document processing platform specialized in transactional document automation, particularly for accounts payable and supply chain workflows. Its cognitive data capture AI understands document layouts in context, extracting data accurately even from documents it has never seen before. Enterprises processing large volumes of invoices, purchase orders, and shipping documents use Rossum to automate their document-heavy workflows.", "https://rossum.ai"),
+    ("Document AI", "Mindee", "Mindee is an AI document parsing API that gives developers the ability to extract structured data from receipts, invoices, passports, and custom documents with a few lines of code. Its pre-built APIs for common document types work out of the box, while the DocTI platform enables training custom document extractors on specific layouts. Developers at thousands of companies use Mindee to add document intelligence to their applications.", "https://mindee.com"),
+    ("Document AI", "Coda AI", "Coda AI is the AI layer built into Coda's collaborative document and database platform. It can summarize meeting notes, draft content, answer questions from your documents, and automate repetitive tasks all within the same workspace where your team manages projects and knowledge. Unlike standalone AI tools, Coda AI has full context of your team's work, making its outputs highly relevant and immediately actionable.", "https://coda.io/product/ai"),
+    ("Document AI", "Humata AI", "Humata AI is a powerful document intelligence tool that allows users to chat with any PDF, extracting answers, summaries, and insights from complex documents instantly. It's particularly valued for analyzing long technical documents, legal contracts, and research papers — allowing users to ask specific questions and receive precise answers without reading every page. Teams use it to dramatically speed up document review workflows.", "https://www.humata.ai"),
+    ("Translation", "DeepL", "DeepL is an AI-powered translation service consistently ranked as the most accurate machine translation tool by professional translators. Its neural networks have been trained on a vast multilingual corpus, capturing nuance, idiom, and context that elude other translation tools. The DeepL API is used by businesses worldwide to localize content at scale, while the consumer app helps millions with everyday translation needs.", "https://www.deepl.com"),
+    ("Translation", "Unbabel", "Unbabel is an AI-augmented translation platform that combines machine translation with a global community of post-editors to deliver high-quality, scalable translations for customer communications. Its AI handles the heavy lifting while human translators add linguistic polish, creating a quality-at-scale approach uniquely suited to customer service content. Global enterprises use Unbabel to deliver localized support in 100+ languages.", "https://unbabel.com"),
+    ("Translation", "Lilt AI", "Lilt is an AI-powered translation platform that combines adaptive machine translation with human expertise to deliver high-quality localization at scale. Its AI learns from the corrections of professional translators, creating a continuously improving translation model tailored to your content. Enterprise customers in defense, manufacturing, and technology use Lilt to localize critical content with speed and accuracy.", "https://lilt.com"),
+    ("Presentation", "Pitch AI", "Pitch is a collaborative presentation platform with AI-powered design assistance that helps teams create compelling decks faster. Its AI suggests layouts, generates slide content from notes, and maintains visual consistency across presentations. With real-time collaboration, analytics on presentation engagement, and a library of professionally designed templates, Pitch is a premium alternative to PowerPoint for modern teams.", "https://pitch.com"),
+    ("Presentation", "Presentations.AI", "Presentations.AI is a tool that generates complete, professionally designed slide decks from text prompts in seconds. Simply describe your topic, audience, and key points, and the AI creates a full presentation with relevant visuals, consistent design, and compelling content. It's used by business professionals who need to create presentations quickly without design skills or spending hours in PowerPoint.", "https://presentations.ai"),
+    ("Presentation", "MagicSlides", "MagicSlides is a Google Slides add-on that uses AI to create complete slide presentations from a topic, PDF, or YouTube URL in under 30 seconds. It's one of the simplest and fastest ways to generate presentation content for students and professionals who need a starting point quickly. With support for customization and multiple design themes, it makes presentation creation dramatically more efficient.", "https://www.magicslides.app"),
+    ("Meeting & Transcription", "Fathom AI", "Fathom is a free AI meeting notetaker for Zoom that records, transcribes, highlights, and summarizes your calls automatically. Unlike competitors, Fathom offers a genuinely free tier with unlimited recordings and AI summaries, making it one of the most accessible meeting AI tools available. Its automated follow-up generation and CRM integration make it a favorite for sales teams and executives.", "https://fathom.video"),
+    ("Meeting & Transcription", "Avoma", "Avoma is an AI meeting lifecycle management platform that covers scheduling, note-taking, transcription, and post-meeting analysis. Its AI generates agenda suggestions before meetings and extracts structured notes, action items, and coaching insights after them. Sales and customer success teams use Avoma to improve their conversations and accelerate revenue by learning from every customer interaction.", "https://www.avoma.com"),
+    ("Meeting & Transcription", "Sembly AI", "Sembly AI is an AI meeting assistant that attends, records, and analyzes meetings to produce smart summaries, action items, and team performance insights. Its unique Meeting Glossary feature learns your organization's specific terminology over time, improving transcription accuracy for industry jargon. Enterprise teams use Sembly to maintain institutional memory and ensure alignment across distributed organizations.", "https://www.sembly.ai"),
+    ("Meeting & Transcription", "Read AI", "Read AI is an AI meeting copilot that provides real-time transcription, automated summaries, and productivity scores for every meeting. Its unique Meeting Score feature quantifies participation, sentiment, and effectiveness metrics, helping teams identify patterns in their meeting culture and improve over time. Read integrates with Zoom, Google Meet, Microsoft Teams, and Slack.", "https://www.read.ai"),
+    ("Automation", "n8n AI", "n8n is an open-source workflow automation platform with deep AI integration that lets technical teams build complex automations connecting hundreds of apps and AI models. Unlike Zapier, n8n can be self-hosted for full data control, and its code nodes allow arbitrary logic for sophisticated workflows. Its LangChain integration makes building AI agents with memory, tools, and multi-step reasoning straightforward.", "https://n8n.io"),
+    ("Automation", "Relevance AI", "Relevance AI is a no-code platform for building AI agents and automated workflows that can perform complex tasks like research, data analysis, and content generation autonomously. Teams build AI assistants that execute multi-step tasks — searching the web, analyzing data, drafting documents — without writing code. It's used by operations, marketing, and research teams to automate knowledge work at scale.", "https://relevanceai.com"),
+    ("Automation", "Lindy AI", "Lindy AI is an AI agent builder that lets you create personal AI assistants for complex, multi-step workflows like research, email management, and meeting scheduling. Each Lindy can be given tools, memory, and instructions to act autonomously on your behalf across dozens of connected apps. It's designed for professionals who want a truly capable AI assistant without the complexity of writing custom automation scripts.", "https://lindy.ai"),
+    ("Automation", "Gumloop", "Gumloop is a no-code AI workflow automation platform that lets users build sophisticated AI pipelines visually — connecting web scrapers, AI models, and data transformers to automate complex research and content generation tasks. Its drag-and-drop interface makes building powerful AI automations accessible to non-engineers, enabling teams to automate tasks that previously required software development.", "https://www.gumloop.com"),
+    ("No-Code & Dev Tools", "Lovable AI", "Lovable (formerly GPT Engineer) is an AI software engineer that builds full-stack web applications from text descriptions, creating production-ready code that you can deploy instantly. Users simply chat with Lovable to describe features, make changes, and iterate on their product — no coding required. It has helped tens of thousands of non-technical founders build their first product and launch MVPs in days.", "https://lovable.dev"),
+    ("No-Code & Dev Tools", "Bolt.new", "Bolt.new is StackBlitz's AI full-stack web development platform that lets you build, run, and deploy web applications in the browser with AI assistance. You describe what you want to build in natural language and Bolt creates, edits, and iterates on complete full-stack applications with Node.js back ends and React front ends. It's one of the fastest ways to prototype and launch web applications without a local development setup.", "https://bolt.new"),
+    ("No-Code & Dev Tools", "Glide AI", "Glide is a no-code platform that builds powerful mobile and web apps from Google Sheets and Airtable data, with AI features that add intelligent automation to app workflows. Its AI column feature can automatically extract information, classify content, and generate text based on your data — turning spreadsheets into sophisticated AI-powered applications without any coding.", "https://www.glideapps.com"),
+    ("Avatar & Digital Human", "Hour One", "Hour One is an AI video creation platform specializing in realistic virtual human presenters for corporate training, L&D, and enterprise communications. Companies choose from a library of photorealistic AI characters or create a custom digital human likeness for branded video content. Hour One is used by major enterprises to scale video content production for onboarding, compliance training, and global communications.", "https://www.hourone.ai"),
+    ("Avatar & Digital Human", "Captions AI", "Captions AI is an AI-powered video creation app that automatically generates captions, translates content, removes filler words, and enhances video quality in minutes. Its AI director feature edits long videos into short highlights optimized for social media, while its avatar feature lets creators appear as an AI-generated version of themselves. Captions is used by millions of content creators to produce polished video content faster.", "https://www.captions.ai"),
+    ("Avatar & Digital Human", "Akool AI", "Akool is an AI creative platform specializing in personalized video generation, face swapping, and avatar creation for marketing and business communications. Its AI face swap and talking photo features generate engaging personalized video content at scale, while its avatar technology enables realistic digital human presenters for any use case. Marketers use Akool to create hyper-personalized video campaigns that drive higher engagement.", "https://akool.com"),
+    ("E-Commerce", "Nosto", "Nosto is an AI-powered eCommerce personalization platform that delivers individualized product recommendations, personalized content, and dynamic pricing across every touchpoint of the shopping journey. Its AI analyzes real-time behavioral data to serve each shopper exactly what they're most likely to purchase, dramatically improving conversion rates and average order values. Nosto is used by thousands of online retailers globally.", "https://www.nosto.com"),
+    ("E-Commerce", "Describely", "Describely is an AI product description generator built specifically for eCommerce, creating SEO-optimized, brand-aligned product descriptions at massive scale. Connect your product catalog and Describely generates compelling, keyword-rich descriptions for every SKU in minutes — a task that would take a human copywriter weeks. It integrates directly with Shopify, BigCommerce, and other major eCommerce platforms.", "https://describely.ai"),
+    ("E-Commerce", "Octane AI", "Octane AI is an AI-powered quiz and personalization platform for Shopify stores that uses conversational product recommendation quizzes to guide shoppers to the perfect product. Its zero-party data collection approach improves both the shopping experience and ad targeting capabilities by collecting explicit customer preferences. Brands using Octane AI report significant increases in conversion rates and average order values.", "https://octaneai.com"),
+    ("Healthcare & Wellness", "Woebot Health", "Woebot is an AI mental health companion that uses evidence-based cognitive behavioral therapy (CBT) techniques to help people manage stress, anxiety, and depression through friendly daily conversations. Unlike therapy apps that connect humans, Woebot's AI is always available, never judgmental, and has been clinically validated in peer-reviewed research. It's used by millions of people worldwide as an accessible mental health support tool.", "https://woebothealth.com"),
+    ("Healthcare & Wellness", "Noom AI", "Noom is an AI-powered behavior change platform for weight management and healthy habits that combines psychology-based coaching with personalized meal planning and activity guidance. Its AI coach provides daily lessons, goal tracking, and personalized feedback that helps users build sustainable healthy behaviors rather than just following a diet plan. Noom has helped millions of people achieve significant, lasting weight loss.", "https://www.noom.com"),
+    ("Image Editing", "Topaz Labs AI", "Topaz Labs makes industry-leading AI image and video enhancement tools used by professional photographers and videographers worldwide. Their suite includes Gigapixel AI for upscaling, DeNoise AI for noise reduction, Sharpen AI for motion blur correction, and Video AI for video enhancement. Topaz tools run locally on your computer using neural networks trained on millions of professional images, delivering studio-grade results.", "https://www.topazlabs.com"),
+    ("Copywriting", "Writecream", "Writecream is a comprehensive AI content generation platform offering tools for cold email personalization, LinkedIn outreach, article writing, ad copy, and even AI-generated audio and video icebreakers. Its unique icebreaker feature researches each prospect's LinkedIn profile and generates personalized opening lines that dramatically improve cold outreach response rates. Agencies and sales teams use Writecream to scale personalized communication.", "https://www.writecream.com"),
+    ("Copywriting", "Hypotenuse AI", "Hypotenuse AI is an AI writing platform specialized in bulk content generation for eCommerce and SEO, capable of creating hundreds of unique product descriptions, category pages, and blog posts simultaneously. It uses web research to generate factually accurate content and allows teams to establish custom brand voice guidelines that all outputs follow consistently. Content agencies and online retailers use it to dramatically scale content production.", "https://hypotenuse.ai"),
+    ("SEO & Content Marketing", "Frase IO", "Frase is an AI SEO content optimization tool that researches, writes, and optimizes content to rank on Google. It analyzes the top search results for any topic and creates a comprehensive brief with the topics, questions, and terms your content must cover to compete. Writers use Frase to ensure every article is deeply researched and optimized for search intent before a single word is written.", "https://www.frase.io"),
+    ("SEO & Content Marketing", "Clearscope", "Clearscope is an AI content optimization platform that helps content teams create highly relevant, search-optimized content that consistently ranks on the first page of Google. It analyzes top-ranking content to generate detailed topic grade reports that guide writers on which concepts to include. Enterprise content teams at major brands use Clearscope to systematically improve their organic search performance.", "https://www.clearscope.io"),
+    ("SEO & Content Marketing", "MarketMuse", "MarketMuse is an AI content planning and optimization platform that uses topic modeling to identify content gaps, prioritize keyword opportunities, and optimize existing content for authority. Its AI scores your content against thousands of competing pages to reveal exactly what topics and depth are needed to rank. Enterprise SEO teams and content strategists use MarketMuse to build topical authority systematically.", "https://www.marketmuse.com"),
+    ("Advertising", "Pencil AI", "Pencil AI is a generative AI platform for advertising creative that produces performance-optimized ad variations at scale. It uses a brand's historical ad performance data to predict which creative variations will achieve the best results, generating dozens of variants for testing simultaneously. Performance marketing teams use Pencil to dramatically increase their creative testing velocity and improve ROAS across channels.", "https://www.trypencil.com"),
+    ("Advertising", "Albert AI", "Albert AI is an autonomous digital marketing AI that plans, executes, and optimizes paid advertising campaigns across search, social, and programmatic channels without constant human intervention. It manages budget allocation, audience targeting, and creative testing in real time based on campaign performance data. Albert is used by major brands to run their digital advertising programs with greater efficiency and scale.", "https://albert.ai"),
+    ("Speech & Audio", "Deepgram", "Deepgram is an enterprise-grade AI speech recognition platform offering industry-leading transcription accuracy with the lowest latency in the market. Built on a novel end-to-end deep learning architecture, Deepgram outperforms other speech recognition services on domain-specific vocabulary, diverse accents, and noisy audio. Its API is used by companies in healthcare, media, finance, and telecommunications to transcribe millions of hours of audio.", "https://deepgram.com"),
+    ("Speech & Audio", "Speechify", "Speechify is the world's most popular AI text-to-speech app, used by over 20 million people to listen to books, articles, emails, and documents at up to 4.5x reading speed. It features ultra-realistic AI voices including celebrity voice clones, supports 30+ languages, and integrates with browsers, iOS, Android, and Mac. Students with dyslexia and busy professionals use Speechify to consume written content dramatically faster.", "https://speechify.com"),
+    ("Speech & Audio", "Podcastle", "Podcastle is an all-in-one AI podcast creation platform that combines recording, editing, transcription, and publishing in a browser-based studio. Its Magic Dust AI automatically removes background noise, boosts audio quality, and levels voice inconsistencies with a single click. Content creators and podcasters use Podcastle to produce professional-quality audio content without expensive equipment or editing expertise.", "https://podcastle.ai"),
+    ("Speech & Audio", "Adobe Podcast Enhance", "Adobe Podcast Enhance Speech is a free AI audio enhancement tool from Adobe that upgrades voice recording quality to studio grade, regardless of the microphone or environment it was recorded in. Upload audio from a noisy room or cheap laptop microphone and Adobe's AI removes reverb, background noise, and inconsistencies to produce broadcast-qu
+
+
+
+
+cd /home/claude && python3 << 'EOF'
+additional_tools = """  {
+    id: 451,
+    category: "Video Generation",
+    title: "Luma Dream Machine",
+    description: "Luma Dream Machine is a state-of-the-art AI video generation model that creates high-quality, realistic video clips from text descriptions and reference images. It produces smooth camera movements, accurate physics simulations, and cinematic-quality output that has made it a favorite among creative professionals. Content creators, filmmakers, and brands use Dream Machine to generate stunning promotional videos, concept visualizations, and creative content effortlessly.",
+    link: "https://lumalabs.ai/dream-machine"
+  },
+  {
+    id: 452,
+    category: "Video Generation",
+    title: "Wan AI",
+    description: "Wan AI is an open-source video generation model by Alibaba that produces high-quality video from text and image prompts with impressive visual consistency and motion realism. Its models are publicly available for research and commercial use, making enterprise-grade video generation accessible to developers worldwide. Creative professionals and AI developers use Wan to build video generation applications and explore the frontier of open video AI.",
+    link: "https://wan.video"
+  },
+  {
+    id: 453,
+    category: "Speech & Audio",
+    title: "Cartesia AI",
+    description: "Cartesia AI is a real-time voice AI platform offering ultra-low latency text-to-speech synthesis for applications where every millisecond matters — voice agents, interactive assistants, and live customer service systems. Its proprietary model architecture achieves sub-100ms latency without sacrificing voice quality, enabling natural-sounding conversational AI at production scale. Developers building voice-first products rely on Cartesia for its combination of speed, quality, and reliability.",
+    link: "https://www.cartesia.ai"
+  },
+  {
+    id: 454,
+    category: "Speech & Audio",
+    title: "Hume AI",
+    description: "Hume AI is a pioneering platform focused on emotionally intelligent AI, providing APIs that measure emotional expression from voice, face, and language in real time. Its Empathic Voice Interface (EVI) enables AI assistants that respond to the emotional content of what you say — not just the words. Developers building empathetic AI applications, mental health tools, and customer experience systems use Hume to create AI that genuinely understands human emotional nuance.",
+    link: "https://www.hume.ai"
+  },
+  {
+    id: 455,
+    category: "AI Agents",
+    title: "Dust AI",
+    description: "Dust is an enterprise platform for building and deploying AI assistants and agents that connect to company knowledge bases, internal tools, and business processes. Its security-first architecture and powerful customization make it suitable for organizations that need AI agents with access to sensitive company data and complex workflows. Teams at leading technology companies use Dust to create AI assistants that genuinely understand their business context.",
+    link: "https://dust.tt"
+  },
+  {
+    id: 456,
+    category: "Developer Tools",
+    title: "Aider",
+    description: "Aider is an open-source AI pair programmer that runs in your terminal and integrates deeply with your git repository, enabling developers to make changes to entire codebases through natural language conversations. It automatically commits changes, understands your full codebase context, and can modify multiple files simultaneously to implement features, fix bugs, or refactor code. Developers who prefer terminal-based workflows find Aider an indispensable AI coding companion.",
+    link: "https://aider.chat"
+  },
+  {
+    id: 457,
+    category: "Developer Tools",
+    title: "Pieces for Developers",
+    description: "Pieces is an AI productivity platform for developers that saves, enriches, and intelligently resurfaces code snippets, screenshots, and development-related content from your daily workflow. Its on-device AI models understand the context behind your saved content and help you find exactly the right snippet when you need it. Development teams use Pieces to build a personal knowledge base of proven solutions that grows more valuable over time.",
+    link: "https://pieces.app"
+  },
+  {
+    id: 458,
+    category: "No-Code & Dev Tools",
+    title: "BuildShip",
+    description: "BuildShip is a visual backend builder powered by AI that enables developers and non-technical builders to create serverless API endpoints, scheduled workflows, and automation nodes without infrastructure management. Its AI generates workflow logic from natural language descriptions, and its library of pre-built nodes for popular services makes complex backend functionality accessible. Teams ship backend features significantly faster with BuildShip than traditional development approaches.",
+    link: "https://buildship.com"
+  },
+  {
+    id: 459,
+    category: "No-Code & Dev Tools",
+    title: "Glide",
+    description: "Glide is a no-code app builder with AI capabilities that transforms spreadsheets and databases into beautiful, functional mobile and web applications without coding. Its AI features include natural language data querying, automated data organization, and AI-generated app components that dramatically accelerate the app-building process. Operations teams and citizen developers use Glide to build internal tools and workflows in hours rather than months.",
+    link: "https://www.glideapps.com"
+  },
+  {
+    id: 460,
+    category: "AI Infrastructure",
+    title: "Modal",
+    description: "Modal is a cloud infrastructure platform designed specifically for AI and ML workloads, enabling developers to run GPU-accelerated Python code, model inference, and data pipelines with zero infrastructure management. Its serverless model scales from zero to thousands of GPUs in seconds, making it ideal for AI applications with variable workloads. ML engineers and AI developers use Modal to deploy models, run training jobs, and build AI-powered APIs with minimal operational overhead.",
+    link: "https://modal.com"
+  },
+  {
+    id: 461,
+    category: "AI Infrastructure",
+    title: "Fireworks AI",
+    description: "Fireworks AI is a high-performance generative AI inference platform that provides fast, cost-efficient API access to leading open-source models — delivering industry-leading speed at a fraction of the cost of comparable services. Its custom hardware optimization produces exceptional throughput for both serverless and dedicated deployments. AI product teams use Fireworks to power production LLM features where latency and cost efficiency are critical competitive factors.",
+    link: "https://fireworks.ai"
+  },
+  {
+    id: 462,
+    category: "AI Infrastructure",
+    title: "Baseten",
+    description: "Baseten is a model inference platform that enables ML teams to deploy, scale, and monitor AI model endpoints with production-grade reliability and performance. Its Truss framework standardizes model packaging for any framework, and its infrastructure handles autoscaling, A/B testing, and observability automatically. Data science and ML engineering teams use Baseten to bridge the gap between model development and reliable production deployment.",
+    link: "https://www.baseten.co"
+  },
+  {
+    id: 463,
+    category: "Education",
+    title: "MagicSchool AI",
+    description: "MagicSchool AI is a comprehensive AI platform built specifically for K-12 educators, providing 60+ AI tools for lesson planning, differentiation, assessment creation, communication, and instructional design. It understands the specific needs and constraints of classroom teachers, saving hours of preparation time while improving instructional quality. Over a million teachers use MagicSchool to leverage AI in a way that genuinely supports their teaching practice.",
+    link: "https://www.magicschool.ai"
+  },
+  {
+    id: 464,
+    category: "Education",
+    title: "SchoolAI",
+    description: "SchoolAI is a personalized AI tutoring platform designed for K-12 students that provides individualized learning experiences across core subjects with teacher oversight and safety controls. Teachers create spaces with learning goals and guardrails, while students engage with an AI tutor that meets them at their level. The platform provides educators with insights into student progress and engagement, combining AI-powered personalization with classroom accountability.",
+    link: "https://schoolai.com"
+  },
+  {
+    id: 465,
+    category: "Design",
+    title: "Pika Art",
+    description: "Pika is an AI creative platform that generates and edits video from text, images, and other videos with expressive, high-quality results. Its user-friendly interface and powerful capabilities make it accessible to creators who want to produce short videos, animations, and visual effects without traditional video production skills. Pika's rapidly evolving feature set and active community have made it a leading platform for creative video AI experimentation.",
+    link: "https://pika.art"
+  },
+  {
+    id: 466,
+    category: "Document AI",
+    title: "Reducto",
+    description: "Reducto is a high-accuracy document parsing API that extracts structured content from complex PDFs — tables, headers, figures, footnotes — while preserving document structure for downstream AI processing. Unlike basic PDF extractors, Reducto understands document layout and hierarchy, enabling RAG pipelines and document AI applications to work with richly structured content. Enterprise teams building document intelligence applications use Reducto for its precision with challenging document types.",
+    link: "https://reducto.ai"
+  },
+  {
+    id: 467,
+    category: "Document AI",
+    title: "Unstract",
+    description: "Unstract is an open-source platform for extracting structured data from unstructured documents using LLMs without writing custom extraction code. Its prompt studio interface lets users configure LLM-powered data extraction workflows for any document type, and its pipeline automation handles high-volume document processing. Organizations with complex document processing needs use Unstract to build accurate, maintainable extraction workflows faster than traditional approaches.",
+    link: "https://unstract.com"
+  },
+  {
+    id: 468,
+    category: "Productivity",
+    title: "Elpass",
+    description: "Elpass is an AI-enhanced password manager and credential security platform that intelligently organizes your passwords, generates strong credentials, and provides security insights about your digital accounts. Its AI features help identify weak, reused, and compromised passwords and guide you through improving your overall security posture. Professionals and security-conscious individuals use Elpass for its combination of AI-powered security intelligence and elegant user experience.",
+    link: "https://elpass.app"
+  },
+  {
+    id: 469,
+    category: "Productivity",
+    title: "TextBlaze",
+    description: "Text Blaze is a text expansion and automation tool that allows users to create smart templates and shortcuts that auto-fill with personalized, dynamic content across any web application. Its AI integration enables templates that generate context-aware content using AI, combining the speed of text expansion with the intelligence of large language models. Sales reps, support agents, and power users use Text Blaze to eliminate repetitive typing and maintain quality at speed.",
+    link: "https://blaze.today"
+  },
+  {
+    id: 470,
+    category: "Marketing Automation",
+    title: "Customer.io",
+    description: "Customer.io is a powerful messaging platform with AI capabilities for delivering personalized, data-driven communications across email, SMS, push notifications, and webhooks throughout the customer lifecycle. Its AI features include send-time optimization, predictive audience segments, and AI-assisted message writing that improves engagement outcomes. Product-led growth companies and SaaS businesses use Customer.io to build sophisticated, behavior-triggered messaging systems that convert and retain users.",
+    link: "https://customer.io"
+  },
+  {
+    id: 471,
+    category: "Marketing Automation",
+    title: "Braze",
+    description: "Braze is an enterprise customer engagement platform that uses AI to orchestrate personalized campaigns across email, push, SMS, in-app messages, and content cards at massive scale. Its Sage AI suite includes predictive churn modeling, recommendation engines, send-time optimization, and generative AI for content creation. Global consumer brands use Braze to deliver billions of personalized messages daily, driving significant improvements in customer retention and lifetime value.",
+    link: "https://www.braze.com"
+  },
+  {
+    id: 472,
+    category: "Social Media",
+    title: "Hootsuite OwlyWriter AI",
+    description: "Hootsuite's OwlyWriter AI is an AI content creation tool integrated directly into the Hootsuite social media management platform, generating captions, post ideas, and content variations tailored to each social network with a single click. It can repurpose top-performing content, generate posts from URLs, and suggest content based on trending topics in your industry. Social media managers use it to maintain consistent posting schedules without the daily grind of manual content creation.",
+    link: "https://www.hootsuite.com"
+  },
+  {
+    id: 473,
+    category: "Sales & CRM",
+    title: "Warmly",
+    description: "Warmly is an AI-powered revenue orchestration platform that identifies and engages anonymous website visitors in real time, enriching their company and contact information and triggering personalized outreach automatically. Its AI segments visitors by intent signals and routes high-value prospects to the right sales reps instantly — transforming website traffic into pipeline. B2B sales and marketing teams use Warmly to capture demand that would otherwise go unnoticed and unconverted.",
+    link: "https://www.warmly.ai"
+  },
+  {
+    id: 474,
+    category: "Sales & CRM",
+    title: "Qualified",
+    description: "Qualified is an AI-powered pipeline generation platform for Salesforce users that identifies and engages high-intent buyers visiting your website in real time. Its AI sales agent Piper engages visitors with personalized conversations, qualifies them intelligently, and books meetings with sales reps — operating 24/7 without human involvement. Enterprise B2B companies use Qualified to accelerate pipeline generation and ensure no high-value visitor leaves without engagement.",
+    link: "https://www.qualified.com"
+  },
+  {
+    id: 475,
+    category: "E-Commerce",
+    title: "Clerk.io",
+    description: "Clerk.io is an AI-powered e-commerce personalization platform that provides intelligent product recommendations, predictive search, and email personalization to maximize revenue from every customer touchpoint. Its deep learning models analyze purchase history, browse behavior, and product attributes to surface the most relevant recommendations for each shopper. E-commerce merchants use Clerk to increase average order value, improve site search conversion, and recover more abandoned carts.",
+    link: "https://www.clerk.io"
+  },
+  {
+    id: 476,
+    category: "E-Commerce",
+    title: "Daasity",
+    description: "Daasity is a data analytics platform for e-commerce brands that consolidates data from all sales channels and marketing platforms into a single analytics hub, with AI-powered insights that drive better decisions. Its pre-built e-commerce metrics, cohort analysis, and attribution modeling give DTC and omnichannel brands a complete view of their business performance. Merchants use Daasity to understand customer behavior deeply, optimize marketing spend, and identify growth levers.",
+    link: "https://www.daasity.com"
+  },
+  {
+    id: 477,
+    category: "Copywriting",
+    title: "Writecream",
+    description: "Writecream is an AI content and copywriting platform offering 40+ tools for creating personalized outreach messages, blog articles, video scripts, podcast intros, and more in 75+ languages. Its unique personalized icebreaker feature generates highly customized opening lines for cold emails using LinkedIn profile data, dramatically improving response rates. Sales teams and content marketers use Writecream to produce personalized, multilingual content at scale.",
+    link: "https://www.writecream.com"
+  },
+  {
+    id: 478,
+    category: "Copywriting",
+    title: "GrowthBar",
+    description: "GrowthBar is an AI SEO and content creation tool built specifically for bloggers, content marketers, and agencies that need to produce research-backed, optimized articles quickly. It combines keyword research, SERP analysis, and AI writing in one workflow — generating full blog posts complete with keyword recommendations, word counts, and internal link suggestions. Teams use GrowthBar to produce content with the competitive intelligence of premium SEO tools built into every article.",
+    link: "https://www.growthbarseo.com"
+  },
+  {
+    id: 479,
+    category: "Writing & Content",
+    title: "Lex.page",
+    description: "Lex is an AI-powered word processor that brings the intelligence of large language models directly into a clean, distraction-free writing environment. Its AI features include intelligent autocomplete, instant feedback on drafts, brainstorming assistance, and one-click rewrites — all integrated seamlessly into the writing experience rather than bolted on. Writers who want a truly AI-native writing environment that supports their craft rather than replacing it choose Lex as their primary tool.",
+    link: "https://lex.page"
+  },
+  {
+    id: 480,
+    category: "Writing & Content",
+    title: "Type AI",
+    description: "Type is an AI-powered document editor that deeply integrates AI generation, editing, and research into every aspect of document creation. Its AI can draft entire documents from briefs, rewrite sections for different audiences, generate visual content, and answer questions from web research — all without leaving the editor. Professionals who want an AI-first alternative to Google Docs and Notion for important writing projects find Type's capabilities transformative.",
+    link: "https://type.ai"
+  },
+  {
+    id: 481,
+    category: "Image Generation",
+    title: "Getimg.ai",
+    description: "Getimg.ai is a comprehensive AI image generation and editing platform offering text-to-image, image-to-image, inpainting, AI canvas, and custom model training capabilities in one unified interface. With support for Stable Diffusion, FLUX, and other leading models, it gives users the flexibility to choose the best model for each creative need. Professional creators and agencies use Getimg.ai for its combination of breadth, quality, and built-in tools for real-world creative workflows.",
+    link: "https://getimg.ai"
+  },
+  {
+    id: 482,
+    category: "Image Generation",
+    title: "Adobe Firefly",
+    description: "Adobe Firefly Video Model extends Adobe's generative AI capabilities to video — enabling creators to generate B-roll footage, add visual effects, and extend video clips using text descriptions and reference content directly in Premiere Pro. Built on commercially safe training data, Firefly is designed for professional workflows where IP safety is essential. Video editors and content teams use it to add generative elements to their projects without leaving their established production environment.",
+    link: "https://firefly.adobe.com"
+  },
+  {
+    id: 483,
+    category: "Business Tools",
+    title: "Decagon",
+    description: "Decagon is an enterprise AI customer support platform that deploys sophisticated AI agents trained on your company's knowledge, policies, and product details to resolve customer inquiries autonomously. Unlike template-based chatbots, Decagon's agents engage in genuine reasoning to handle complex, nuanced support scenarios. Enterprise companies use it to automate high volumes of customer support while maintaining the quality and accuracy that complex product support demands.",
+    link: "https://www.decagon.ai"
+  },
+  {
+    id: 484,
+    category: "Business Tools",
+    title: "Cognosys",
+    description: "Cognosys is an AI agent platform that breaks down complex business tasks into actionable steps and executes them autonomously across research, analysis, writing, and coordination. Users define goals in natural language and Cognosys plans, executes, and delivers results — searching the web, synthesizing information, creating documents, and integrating with business tools. Knowledge workers and business operators use it to delegate complex research and analysis tasks to an AI that completes them end-to-end.",
+    link: "https://www.cognosys.ai"
+  },
+  {
+    id: 485,
+    category: "AI Research",
+    title: "Elicit",
+    description: "Elicit is an AI research assistant powered by language models that helps researchers find, summarize, and synthesize peer-reviewed scientific literature. It excels at systematic literature reviews — automatically finding relevant papers, extracting key data from abstracts, and organizing findings into structured summaries. Academic researchers, policy analysts, and evidence-based practitioners use Elicit to dramatically accelerate evidence synthesis and literature review workflows.",
+    link: "https://elicit.com"
+  },
+  {
+    id: 486,
+    category: "AI Research",
+    title: "Connected Papers",
+    description: "Connected Papers is an innovative visual tool for academic researchers that creates an interactive graph of papers related to any research work, making it easy to discover the most relevant literature and understand how papers connect to each other. Its visual exploration approach surfaces relationships between papers that keyword search would miss. Researchers use it to build comprehensive literature maps, discover foundational works, and identify the most influential papers in any research area.",
+    link: "https://www.connectedpapers.com"
+  },
+  {
+    id: 487,
+    category: "Lifestyle",
+    title: "Wander AI",
+    description: "Wander AI is an AI-powered travel planning assistant that creates hyper-personalized travel itineraries, accommodation recommendations, and activity suggestions based on your specific travel style, interests, budget, and preferences. It incorporates local knowledge, seasonal factors, and real-world logistics to build practical, experience-rich plans. Travel enthusiasts and frequent travelers use it to plan memorable journeys that are tailored to their exact tastes rather than generic tourist routes.",
+    link: "https://www.wander.com"
+  },
+  {
+    id: 488,
+    category: "Lifestyle",
+    title: "Luma AI",
+    description: "Luma AI is a 3D capture and generation platform that enables anyone to create photorealistic 3D models and scenes from video recordings using neural radiance fields (NeRF) technology. Walk around an object or space while recording video, and Luma AI reconstructs a fully interactive 3D model. Architects, game developers, e-commerce brands, and 3D artists use it to create high-quality 3D content from simple video captures without specialized equipment.",
+    link: "https://lumalabs.ai"
+  },
+  {
+    id: 489,
+    category: "Image Editing",
+    title: "Pixelcut",
+    description: "Pixelcut is a mobile-first AI photo editing and product photography app used by over 10 million e-commerce sellers and creators to produce professional product images directly from their smartphones. Its AI tools include instant background removal, virtual photography studios, batch editing, and AI-generated lifestyle backgrounds that make products look like they were shot in expensive studios. A transformative tool for small business owners who need professional product imagery on a budget.",
+    link: "https://www.pixelcut.ai"
+  },
+  {
+    id: 490,
+    category: "Document AI",
+    title: "Ingest AI",
+    description: "Ingest AI is an enterprise platform for building internal AI assistants that connect to company data sources — Confluence, Google Drive, Notion, SharePoint — and answer employee questions with accurate, sourced responses. Its permission-aware architecture ensures employees only receive answers from content they're authorized to access, making it enterprise-safe. Organizations use it to reduce time spent searching for information and enable every employee to access institutional knowledge instantly.",
+    link: "https://www.ingestai.io"
+  },
+  {
+    id: 491,
+    category: "Automation",
+    title: "Parabola",
+    description: "Parabola is a no-code data workflow automation platform that enables operations teams to automate complex, multi-step data processes involving CSV files, APIs, databases, and third-party tools without writing code. Its visual drag-and-drop interface makes sophisticated data transformations accessible to non-technical users, while its automation capabilities ensure processes run reliably on schedule. E-commerce and operations teams use Parabola to automate data-heavy workflows that previously required engineering resources.",
+    link: "https://parabola.io"
+  },
+  {
+    id: 492,
+    category: "Automation",
+    title: "Tray.io",
+    description: "Tray is an enterprise automation platform with deep AI integration that enables organizations to build sophisticated multi-step workflows connecting their entire application stack. Its AI Merlin assists with workflow design, troubleshooting, and optimization, while its powerful HTTP connector handles any API. Enterprise operations and IT teams use Tray to automate complex, high-volume processes that require enterprise-grade reliability and governance.",
+    link: "https://tray.io"
+  },
+  {
+    id: 493,
+    category: "Customer Support",
+    title: "Forethought AI",
+    description: "Forethought is an enterprise AI platform for customer support that combines ticket classification, intelligent triage, agent assistance, and resolution automation in a comprehensive support intelligence system. Its Solve product automatically handles common support queries while its Assist product surfaces the right knowledge and suggested responses to agents for complex issues. Enterprise support organizations use Forethought to dramatically improve support efficiency and CSAT simultaneously.",
+    link: "https://forethought.ai"
+  },
+  {
+    id: 494,
+    category: "Customer Support",
+    title: "Kustomer",
+    description: "Kustomer is an AI-powered customer service CRM that provides a unified, omnichannel view of every customer interaction and uses AI to automate conversations, assist agents, and surface actionable insights. Its AI features include intent detection, sentiment scoring, suggested responses, and fully automated resolution workflows for common inquiries. High-growth consumer brands use Kustomer to scale customer support operations without proportionally increasing headcount.",
+    link: "https://www.kustomer.com"
+  },
+  {
+    id: 495,
+    category: "Healthcare",
+    title: "DeepMind AlphaFold",
+    description: "AlphaFold by Google DeepMind is one of the most significant scientific breakthroughs of the AI era — a deep learning system that accurately predicts the 3D structure of proteins from their amino acid sequences. Its protein structure database now covers virtually every known protein, democratizing structural biology research globally. Pharmaceutical researchers, biologists, and drug discovery teams use AlphaFold predictions to accelerate understanding of disease mechanisms and develop new treatments.",
+    link: "https://alphafold.ebi.ac.uk"
+  },
+  {
+    id: 496,
+    category: "AI Infrastructure",
+    title: "Vertex AI",
+    description: "Google Cloud Vertex AI is a fully managed AI platform for building, deploying, and scaling machine learning models and generative AI applications with enterprise-grade infrastructure. It provides access to Google's latest foundation models through the Model Garden, MLOps tools for production ML, and integration with the broader Google Cloud ecosystem. Data science and AI engineering teams at enterprises use Vertex AI for its combination of model access, tooling, and scalable infrastructure.",
+    link: "https://cloud.google.com/vertex-ai"
+  },
+  {
+    id: 497,
+    category: "AI Infrastructure",
+    title: "AWS Bedrock",
+    description: "Amazon Bedrock is a fully managed service that provides access to leading foundation models from Amazon, Anthropic, Meta, Mistral, Stability AI, and others through a unified API. It enables organizations to build generative AI applications with enterprise security, compliance, and scalability on AWS infrastructure without managing model hosting. Enterprises already on AWS use Bedrock to incorporate best-in-class AI models into their products with the compliance and data privacy guarantees their industries require.",
+    link: "https://aws.amazon.com/bedrock"
+  },
+  {
+    id: 498,
+    category: "Developer Tools",
+    title: "Sweep AI",
+    description: "Sweep is an AI software engineer that lives in your GitHub repository, automatically turning bug reports and feature requests into pull requests. Assign a GitHub issue to Sweep and it reads the codebase, writes the necessary code changes, and opens a PR with tests — handling routine engineering tasks autonomously. Development teams use it to address technical debt, fix bugs, and implement small features without occupying senior engineer time.",
+    link: "https://sweep.dev"
+  },
+  {
+    id: 499,
+    category: "Business Tools",
+    title: "CommandBar",
+    description: "CommandBar is an AI-powered user assistance platform that helps software products guide, support, and engage users through in-app AI chat, intelligent nudges, and context-aware help documentation. Its HelpHub feature provides instant answers to user questions by surfacing the right documentation and support content, while its Copilot enables users to complete tasks through natural language. SaaS companies use CommandBar to reduce support volume while improving user onboarding and product adoption.",
+    link: "https://www.commandbar.com"
+  },
+  {
+    id: 500,
+    category: "AI Research",
+    title: "Lmarena (LMSYS)",
+    description: "LMSYS Chatbot Arena (LMArena) is the most widely used open platform for evaluating and comparing large language models through head-to-head user preference battles. Millions of user votes have generated the most comprehensive real-world LLM ranking available, covering over 100 models. Researchers, developers, and AI practitioners use it to understand model capabilities, track progress in the field, and make informed decisions about which models to use for their applications.",
+    link: "https://lmarena.ai"
+  },
+"""
+
+with open('tools_updated.js', 'r') as f:
+    content = f.read()
+
+# Find insertion point - right before "  {\n    id: 651," (old 450 + 201 = 651)
+# Actually the old dummy 300 became 501, so we need to insert before id: 501
+marker = '  {\n    id: 501,'
+pos = content.find(marker)
+print(f"Insertion point at position: {pos}")
+print(f"Context: {repr(content[pos-30:pos+30])}")
+
+before = content[:pos]
+after = content[pos:]
+
+new_content = before + additional_tools + after
+
+with open('tools_final.js', 'w') as f:
+    f.write(new_content)
+
+import re
+ids = [int(x) for x in re.findall(r'    id: (\d+),', new_content)]
+print(f"Total entries: {len(ids)}")
+real_500 = [i for i in ids if 1 <= i <= 500]
+print(f"IDs 1-500: {len(real_500)}")
+from collections import Counter
+c = Counter(ids)
+dups = [(k,v) for k,v in c.items() if v > 1]
+print(f"Duplicates: {dups[:5]}")
+EOF
+
+
+
+

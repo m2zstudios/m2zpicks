@@ -1,0 +1,19 @@
+name = "m2zpicks-cache-bridge"
+main = "src/index.js"
+compatibility_date = "2026-05-03"
+
+[[kv_namespaces]]
+binding = "TOOLS_KV"
+id = "bc506e8d8c4e4b83aac50ac64916843c"
+preview_id = "6278f5fca71c4cf09e01edab1d8dbf3c"
+
+[triggers]
+crons = ["0 0 */3 * *"]
+
+[vars]
+APPWRITE_ENDPOINT = "https://sfo.cloud.appwrite.io/v1"
+APPWRITE_PROJECT_ID = "m2zpicks"
+APPWRITE_DATABASE_ID = "m2zpicks-db"
+APPWRITE_TOOLS_COLLECTION_ID = "tools"
+CACHE_TTL_SECONDS = "259200"
+

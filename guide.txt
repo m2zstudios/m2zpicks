@@ -1,0 +1,185 @@
+# m2zpicks Final Setup Guide (Netlify + Appwrite + Cloudflare Worker KV)
+
+This guide is the exact checklist to make the project work end-to-end in production.
+
+---
+## 1) What is already built in this repo
+
+- Frontend pages use dynamic data loading (no `tools.js`, no `ranks.json`).
+- Appwrite data client exists: `appwrite.js`.
+- Cloudflare Worker cache bridge exists under:
+  - `cloudflare-worker/wrangler.toml`
+  - `cloudflare-worker/src/index.js`
+  - `cloudflare-worker/README.md`
+- Placeholder JSON files exist:
+  - `homepage.json`
+  - `creators.json`
+
+---
+## 2) Appwrite setup (source-of-truth DB)
+
+Use your Appwrite project:
+- Endpoint: `https://sfo.cloud.appwrite.io/v1`
+- Project: `m2zpicks`
+- Database: `m2zpicks-db`
+
+Collections/tables required:
+
+### tools
+- `id` (integer, required)
+- `category` (string, required)
+- `title` (string, required)
+- `description` (string, required)
+- `link` (string, required)
+- `verified` (optional)
+
+### ranks
+- `id` (integer)
+- `rank` (integer)
+- `overall` (integer)
+- `reasoning` (integer)
+- `coding` (integer)
+- `vision` (integer)
+- `context` (string)
+- `change` (string)
+- `tags` (string[])
+- `categories` (string[])
+
+### creators
+- `slug` (string)
+- `name` (string)
+- `handle` (string)
+- `platform` (string) *(legacy typo fallback supported: `platforn`)*
+- `avatar_url` (string)
+- `channel_url` (string)
+- `pick_ids` (integer[]) *(legacy fallback supported: `picks_ids`)*
+- `featured` (boolean)
+- optional: `reach_label`, `reach_k`, `niche_tags`, `tool_quote`, `platform_quote`
+
+Permissions:
+- For now: public read access for `tools`, `ranks`, `creators`.
+
+---
+## 3) Cloudflare setup (cache bridge)
+
+## 3.1 Create Worker + KV
+1. In Cloudflare dashboard, create one Worker.
+2. Create one KV namespace (and preview namespace).
+3. Copy KV IDs into `cloudflare-worker/wrangler.toml`:
+   - `id`
+   - `preview_id`
+
+## 3.2 Upload files to Cloudflare Worker project
+From this repo, use the files exactly from:
+- `cloudflare-worker/src/index.js`
+- `cloudflare-worker/wrangler.toml`
+
+If deploying with Wrangler locally:
+```bash
+cd cloudflare-worker
+npm i -g wrangler
+wrangler login
+```
+
+## 3.3 Set Worker secrets (IMPORTANT)
+```bash
+wrangler secret put APPWRITE_API_KEY
+wrangler secret put REFRESH_TOKEN
+```
+
+- `APPWRITE_API_KEY`: server key from Appwrite (read access to DB).
+- `REFRESH_TOKEN`: any strong random token you choose for manual refresh endpoint.
+
+## 3.4 Verify env vars in `wrangler.toml`
+Ensure these are correct:
+- `APPWRITE_ENDPOINT`
+- `APPWRITE_PROJECT_ID`
+- `APPWRITE_DATABASE_ID`
+- `APPWRITE_TOOLS_COLLECTION_ID`
+- `CACHE_TTL_SECONDS` (default `259200`, i.e. 3 days)
+
+## 3.5 Deploy Worker
+```bash
+wrangler deploy
+```
+
+## 3.6 Cron trigger
+Already configured in `wrangler.toml`:
+- `0 0 */3 * *` → refresh every 3 days at 00:00 UTC.
+
+---
+## 4) Worker endpoints you should test
+After deploy, test these URLs:
+- `GET /health`
+- `GET /stats`
+- `GET /categories`
+- `GET /latest`
+- `GET /tools`
+
+Manual refresh test:
+```bash
+curl -X POST "https://<your-worker>.workers.dev/refresh" \
+  -H "x-refresh-token: <your_refresh_token>"
+```
+
+Expected: JSON success payload with counts and timestamp.
+
+---
+## 5) Netlify frontend final steps
+
+### 5.1 Deploy latest repo to Netlify
+Push latest code so your frontend includes all Appwrite/worker changes.
+
+### 5.2 (Recommended) switch frontend reads to Worker endpoints
+Current code supports Appwrite direct reads. For best speed globally, move homepage/creators/list reads to Worker endpoints.
+
+Recommended next refactor target:
+- homepage stats/trending -> Worker `/stats`, `/latest`
+- list pagination -> Worker paginated endpoint (future update)
+- category summaries -> Worker `/categories`
+
+### 5.3 Hard refresh
+After deployment, do a hard refresh (Ctrl+F5) to clear cached scripts.
+
+---
+## 6) Production checklist (must pass)
+
+- [ ] Home loads with counts + categories.
+- [ ] List loads 50 tools first, then loads more on scroll.
+- [ ] Category page shows category tools (no stuck loader).
+- [ ] Detailed page shows visit/favorite/related/rank card.
+- [ ] Rankings page filters/tags render correctly.
+- [ ] Creators page exits skeleton state and renders data.
+- [ ] Worker `/health` returns valid meta JSON.
+- [ ] Scheduled refresh appears in Cloudflare logs every 3 days.
+
+---
+## 7) Common issues and fixes
+
+### Creators page stuck on loading
+- Check browser console.
+- Check Worker/Appwrite response latency.
+- Trigger manual refresh endpoint.
+
+### Wrong category count on homepage
+- Clear session storage and refresh.
+- Ensure full tools dataset has valid `category` fields.
+
+### Appwrite errors from Worker
+- Re-check `APPWRITE_API_KEY` secret.
+- Re-check DB/collection IDs in `wrangler.toml`.
+
+---
+## 8) What to upload where (short answer)
+
+### Upload/deploy to Cloudflare Worker project
+- `cloudflare-worker/src/index.js`
+- `cloudflare-worker/wrangler.toml`
+
+### Keep in Netlify site repo
+- All frontend files (`index.html`, `list.html`, `detailed.html`, `rankings.html`, `creators.html`, `script.js`, `appwrite.js`, `style.css`, etc.)
+
+### Secrets only in Cloudflare (never frontend)
+- `APPWRITE_API_KEY`
+- `REFRESH_TOKEN`
+

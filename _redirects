@@ -1,0 +1,14 @@
+# URL Canonicalization for m2zpicks.netlify.app
+# Redirect all variations to the canonical HTTPS non-www URL
+
+# Redirect www to non-www (HTTPS)
+https://www.m2zpicks.netlify.app/* https://m2zpicks.netlify.app/:splat 301!
+
+# Redirect HTTP to HTTPS (non-www)
+http://m2zpicks.netlify.app/* https://m2zpicks.netlify.app/:splat 301!
+
+# Redirect www HTTP to HTTPS non-www
+http://www.m2zpicks.netlify.app/* https://m2zpicks.netlify.app/:splat 301!
+
+# Serve custom 404 page for unknown paths
+/* /404.html 404
