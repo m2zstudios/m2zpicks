@@ -8,6 +8,10 @@ const CACHE_KEYS = {
 
 export default {
   async fetch(request, env) {
+    if (request.method === 'OPTIONS') {
+      return withCors(new Response(null, { status: 204 }));
+    }
+
     const url = new URL(request.url);
 
     if (url.pathname === '/refresh' && request.method === 'POST') {
@@ -46,12 +50,12 @@ export default {
           });
         }
 
-        return new Response(value, {
+        return withCors(new Response(value, {
           headers: {
             'content-type': 'application/json; charset=utf-8',
             'cache-control': 'no-store'
           }
-        });
+        }));
       } catch (err) {
         return json({
           ok: false,
@@ -78,12 +82,12 @@ async function serveCached(env, key) {
       }, 503);
     }
 
-    return new Response(value, {
+    return withCors(new Response(value, {
       headers: {
         'content-type': 'application/json; charset=utf-8',
         'cache-control': 'public, max-age=300, s-maxage=86400, stale-while-revalidate=86400'
       }
-    });
+    }));
   } catch (err) {
     return json({
       ok: false,
@@ -232,12 +236,21 @@ function buildCategories(tools) {
     .sort((a, b) => b.count - a.count);
 }
 
+function withCors(response) {
+  const headers = new Headers(response.headers);
+  headers.set('access-control-allow-origin', '*');
+  headers.set('access-control-allow-methods', 'GET,POST,OPTIONS');
+  headers.set('access-control-allow-headers', 'Content-Type,x-refresh-token');
+  headers.set('vary', 'Origin');
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
 function json(data, status = 200) {
-  return new Response(JSON.stringify(data, null, 2), {
+  return withCors(new Response(JSON.stringify(data, null, 2), {
     status,
     headers: {
       'content-type': 'application/json; charset=utf-8',
       'cache-control': 'no-store'
     }
-  });
+  }));
 }

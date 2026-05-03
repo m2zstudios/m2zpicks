@@ -37,6 +37,19 @@
     return json;
   }
 
+
+  async function fetchAllToolsDirect() {
+    return fetchAllPaginated(COLLECTIONS.tools, 'mz_tools_cache_direct');
+  }
+
+  async function fetchBridgeWithFallback(path, cacheKey, fallbackFn) {
+    try {
+      return await fetchBridge(path, cacheKey);
+    } catch (_err) {
+      return fallbackFn();
+    }
+  }
+
   async function fetchAllPaginated(collectionId, cacheKey) {
     const cached = readCache(cacheKey);
     if (cached) return cached;
@@ -57,13 +70,42 @@
     return all;
   }
 
-  const fetchAllTools = async () => (await fetchBridge('/tools', 'mz_tools_cache_bridge')).tools || [];
-  const fetchCategories = async () => (await fetchBridge('/categories', 'mz_categories_cache_bridge')).categories || [];
-  const fetchBridgeStats = async () => fetchBridge('/stats', 'mz_stats_cache_bridge');
-  const fetchLatestTools = async () => (await fetchBridge('/latest', 'mz_latest_cache_bridge')).latest || [];
+  const fetchAllTools = async () => {
+    const payload = await fetchBridgeWithFallback('/tools', 'mz_tools_cache_bridge', async () => ({ tools: await fetchAllToolsDirect() }));
+    return payload.tools || [];
+  };
+
+  const fetchCategories = async () => {
+    const payload = await fetchBridgeWithFallback('/categories', 'mz_categories_cache_bridge', async () => ({
+      categories: buildCategories(await fetchAllToolsDirect())
+    }));
+    return payload.categories || [];
+  };
+
+  const fetchBridgeStats = async () => fetchBridgeWithFallback('/stats', 'mz_stats_cache_bridge', async () => {
+    const tools = await fetchAllToolsDirect();
+    const categories = buildCategories(tools);
+    return { totalTools: tools.length, totalCategories: categories.length, lastRefreshedAt: null };
+  });
+
+  const fetchLatestTools = async () => {
+    const payload = await fetchBridgeWithFallback('/latest', 'mz_latest_cache_bridge', async () => ({
+      latest: (await fetchAllToolsDirect()).slice().sort((a, b) => new Date(b.$createdAt) - new Date(a.$createdAt)).slice(0, 50)
+    }));
+    return payload.latest || [];
+  };
 
   const fetchAllRanks = () => fetchAllPaginated(COLLECTIONS.ranks, 'mz_ranks_cache');
   const fetchAllCreators = () => fetchAllPaginated(COLLECTIONS.creators, 'mz_creators_cache');
+
+  function buildCategories(tools) {
+    const map = new Map();
+    tools.forEach((t) => {
+      const category = String(t.category || 'Uncategorized').trim();
+      map.set(category, (map.get(category) || 0) + 1);
+    });
+    return [...map.entries()].map(([category, count]) => ({ category, count })).sort((a, b) => b.count - a.count);
+  }
 
   async function fetchRankedTools() {
     const [tools, ranks] = await Promise.all([fetchAllTools(), fetchAllRanks()]);
