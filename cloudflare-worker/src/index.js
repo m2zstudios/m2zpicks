@@ -169,13 +169,15 @@ async function fetchAllToolsFromAppwrite(env) {
   };
 
   const tools = [];
-  let offset = 0;
-  let total = Infinity;
+  let cursorAfter = null;
 
-  while (offset < total) {
+  while (true) {
   const params = new URLSearchParams();
-  params.set('limit', '100');
-  params.set('offset', String(offset));
+  params.append('queries[]', 'limit(100)');
+  if (cursorAfter) {
+    params.append('queries[]', `cursorAfter("${cursorAfter}")`);
+  }
+
   const url = `${endpoint}/databases/${db}/collections/${col}/documents?${params.toString()}`;
 
   const res = await fetch(url, { headers });
@@ -201,17 +203,17 @@ async function fetchAllToolsFromAppwrite(env) {
     );
   }
 
-  total = Number(payload.total || 0);
-
   const docs = payload.documents || [];
-
   tools.push(...docs);
 
-  if (!docs.length) {
+  if (docs.length < 100) {
     break;
   }
 
-  offset += docs.length;
+  cursorAfter = docs[docs.length - 1]?.$id;
+  if (!cursorAfter) {
+    break;
+  }
 }
 
   const seen = new Set();
