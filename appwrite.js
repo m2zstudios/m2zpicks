@@ -25,6 +25,26 @@
 
   const writeCache = (key, data) => sessionStorage.setItem(key, JSON.stringify({ ts: Date.now(), data }));
 
+  function normalizeTool(tool) {
+    return {
+      ...tool,
+      category: String(tool?.category || 'Uncategorized').trim()
+    };
+  }
+
+  function uniqTools(tools) {
+    const seen = new Set();
+    const out = [];
+    for (const t of (tools || [])) {
+      const normalized = normalizeTool(t);
+      const key = normalized.$id || `id:${normalized.id}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(normalized);
+    }
+    return out;
+  }
+
   async function fetchBridge(path, cacheKey) {
     const cached = readCache(cacheKey);
     if (cached) return cached;
@@ -72,7 +92,7 @@
 
   const fetchAllTools = async () => {
     const payload = await fetchBridgeWithFallback('/tools', 'mz_tools_cache_bridge', async () => ({ tools: await fetchAllToolsDirect() }));
-    return payload.tools || [];
+    return uniqTools(payload.tools || []);
   };
 
   const fetchCategories = async () => {
@@ -92,7 +112,7 @@
     const payload = await fetchBridgeWithFallback('/latest', 'mz_latest_cache_bridge', async () => ({
       latest: (await fetchAllToolsDirect()).slice().sort((a, b) => new Date(b.$createdAt) - new Date(a.$createdAt)).slice(0, 50)
     }));
-    return payload.latest || [];
+    return uniqTools(payload.latest || []);
   };
 
   const fetchAllRanks = () => fetchAllPaginated(COLLECTIONS.ranks, 'mz_ranks_cache');
@@ -121,7 +141,7 @@
   async function fetchToolsByCategory(category, limit = 24) {
     const tools = await fetchAllTools();
     return tools
-      .filter((t) => String(t.category) === String(category))
+      .filter((t) => String(t.category) === String(category).trim())
       .sort((a, b) => new Date(b.$createdAt) - new Date(a.$createdAt))
       .slice(0, limit);
   }
