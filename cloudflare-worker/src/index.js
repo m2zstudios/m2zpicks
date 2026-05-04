@@ -173,7 +173,11 @@ async function fetchAllToolsFromAppwrite(env) {
   let total = Infinity;
 
   while (offset < total) {
-  const url = `${endpoint}/databases/${db}/collections/${col}/documents?limit=100&offset=${offset}`;
+  const params = new URLSearchParams();
+  params.append('queries[]', 'limit(100)');
+  params.append('queries[]', `offset(${offset})`);
+  params.append('queries[]', 'orderDesc($createdAt)');
+  const url = `${endpoint}/databases/${db}/collections/${col}/documents?${params.toString()}`;
 
   const res = await fetch(url, { headers });
 
@@ -211,7 +215,16 @@ async function fetchAllToolsFromAppwrite(env) {
   offset += docs.length;
 }
 
-  return tools;
+  const seen = new Set();
+  const deduped = [];
+  for (const tool of tools) {
+    const key = tool.$id || `id:${tool.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(tool);
+  }
+
+  return deduped;
 }
 
 function buildCategories(tools) {
