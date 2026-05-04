@@ -3,55 +3,87 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>M2Z Admin Panel</title>
+  <title>M2Z Admin Console</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <main class="wrap">
-    <section id="loginCard" class="card">
-      <h1>M2Z Admin Login</h1>
-      <p class="muted">Use the temporary credentials configured for this panel.</p>
+    <section id="loginCard" class="card auth-card">
+      <h1>M2Z Admin Console</h1>
+      <p class="muted">Temporary login (replace in production).</p>
       <form id="loginForm">
         <label>Username<input id="username" required /></label>
         <label>Password<input id="password" type="password" required /></label>
-        <button type="submit">Login</button>
+        <button type="submit">Sign In</button>
       </form>
       <p id="loginError" class="error hidden">Invalid credentials.</p>
     </section>
 
     <section id="dashboard" class="hidden">
-      <div class="header-row">
-        <h1>M2Z Site Admin</h1>
+      <header class="topbar card">
+        <div>
+          <h1>M2Z Site Dashboard</h1>
+          <p class="muted">Cache bridge + Appwrite admin controls</p>
+        </div>
         <button id="logoutBtn" class="secondary">Logout</button>
-      </div>
+      </header>
 
-      <div class="card grid-2">
-        <label>Cache Bridge Base URL
-          <input id="baseUrl" value="https://m2zpicks-cache-bridge.m2zinnovative.workers.dev" />
-        </label>
-        <label>Refresh Token
-          <input id="refreshToken" placeholder="Paste x-refresh-token" />
-        </label>
-      </div>
+      <section class="card">
+        <h3>Admin Credentials / Keys</h3>
+        <div class="grid-2">
+          <label>Cache Bridge URL
+            <input id="baseUrl" value="https://m2zpicks-cache-bridge.m2zinnovative.workers.dev" />
+          </label>
+          <label>Refresh Token
+            <input id="refreshToken" placeholder="x-refresh-token" />
+          </label>
+          <label class="full">Appwrite API Key (saved in LocalStorage)
+            <input id="appwriteApiKey" type="password" placeholder="Paste full-control API key" />
+          </label>
+        </div>
+        <div class="row-gap">
+          <button id="saveApiKeyBtn">Save API Key</button>
+          <button id="clearApiKeyBtn" class="secondary">Clear API Key</button>
+          <span id="apiKeyStatus" class="muted">No API key saved.</span>
+        </div>
+      </section>
 
-      <div class="controls">
-        <button data-action="health">Check Health</button>
-        <button data-action="stats">Get Stats</button>
-        <button data-action="categories">Get Categories</button>
-        <button data-action="tools">Get Tools</button>
-        <button data-action="latest">Get Latest</button>
-        <button data-action="refresh" class="warn">Force Refresh</button>
-      </div>
+      <section id="lockedNotice" class="card warning hidden">
+        <strong>Dashboard locked:</strong> Save an Appwrite API key to enable full controls.
+      </section>
 
-      <div class="card">
+      <section id="controlsWrap" class="hidden">
+        <section class="card">
+          <h3>Cache Bridge Controls</h3>
+          <div class="controls">
+            <button data-action="health">Health</button>
+            <button data-action="stats">Stats</button>
+            <button data-action="categories">Categories</button>
+            <button data-action="tools">Tools</button>
+            <button data-action="latest">Latest</button>
+            <button data-action="refresh" class="warn">Force Refresh</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <h3>Appwrite DB Controls</h3>
+          <div class="controls">
+            <button data-db-action="countTools">Count Tools</button>
+            <button data-db-action="listFirst100">List First 100</button>
+            <button data-db-action="validateSequence">Validate ID Sequence</button>
+          </div>
+        </section>
+      </section>
+
+      <section class="card">
         <h3>Quick Summary</h3>
         <div id="summary" class="summary">No data yet.</div>
-      </div>
+      </section>
 
-      <div class="card">
+      <section class="card">
         <h3>Response</h3>
         <pre id="output">Run an action to view data...</pre>
-      </div>
+      </section>
     </section>
   </main>
 
