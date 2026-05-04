@@ -10,7 +10,6 @@
   <main class="wrap">
     <section id="loginCard" class="card auth-card">
       <h1>M2Z Admin Console</h1>
-      <p class="muted">Temporary login (replace in production).</p>
       <form id="loginForm">
         <label>Username<input id="username" required /></label>
         <label>Password<input id="password" type="password" required /></label>
@@ -21,25 +20,20 @@
 
     <section id="dashboard" class="hidden">
       <header class="topbar card">
-        <div>
-          <h1>M2Z Site Dashboard</h1>
-          <p class="muted">Cache bridge + Appwrite admin controls</p>
-        </div>
+        <div><h1>M2Z Admin Dashboard</h1><p class="muted">Tabbed control panel (Blogger-style)</p></div>
         <button id="logoutBtn" class="secondary">Logout</button>
       </header>
 
       <section class="card">
-        <h3>Admin Credentials / Keys</h3>
-        <div class="grid-2">
-          <label>Cache Bridge URL
-            <input id="baseUrl" value="https://m2zpicks-cache-bridge.m2zinnovative.workers.dev" />
-          </label>
-          <label>Refresh Token
-            <input id="refreshToken" placeholder="x-refresh-token" />
-          </label>
-          <label class="full">Appwrite API Key (saved in LocalStorage)
-            <input id="appwriteApiKey" type="password" placeholder="Paste full-control API key" />
-          </label>
+        <h3>Connection Settings</h3>
+        <div class="grid-3">
+          <label>Appwrite Endpoint<input id="awEndpoint" value="https://sfo.cloud.appwrite.io/v1" /></label>
+          <label>Project ID<input id="awProject" value="m2zpicks" /></label>
+          <label>Database ID<input id="awDatabase" value="m2zpicks-db" /></label>
+          <label>Tools Collection<input id="awToolsCollection" value="tools" /></label>
+          <label>Creators Collection<input id="awCreatorsCollection" value="creators" /></label>
+          <label>Ranks Collection<input id="awRanksCollection" value="ranks" /></label>
+          <label class="full">Appwrite API Key (stored in LocalStorage)<input id="appwriteApiKey" type="password" placeholder="Paste full-control API key" /></label>
         </div>
         <div class="row-gap">
           <button id="saveApiKeyBtn">Save API Key</button>
@@ -48,45 +42,76 @@
         </div>
       </section>
 
-      <section id="lockedNotice" class="card warning hidden">
-        <strong>Dashboard locked:</strong> Save an Appwrite API key to enable full controls.
-      </section>
+      <section id="lockedNotice" class="card warning hidden"><strong>Dashboard locked:</strong> save API key to unlock CRUD controls.</section>
 
-      <section id="controlsWrap" class="hidden">
-        <section class="card">
-          <h3>Cache Bridge Controls</h3>
+      <section id="adminTabsWrap" class="hidden">
+        <nav class="tabs card" id="tabsNav">
+          <button class="tab active" data-tab="overview">Overview</button>
+          <button class="tab" data-tab="tools">Tools CRUD</button>
+          <button class="tab" data-tab="creators">Creators CRUD</button>
+          <button class="tab" data-tab="ranks">Ranks CRUD</button>
+        </nav>
+
+        <section class="tab-panel card active" data-panel="overview">
+          <h3>Overview Controls</h3>
           <div class="controls">
-            <button data-action="health">Health</button>
-            <button data-action="stats">Stats</button>
-            <button data-action="categories">Categories</button>
-            <button data-action="tools">Tools</button>
-            <button data-action="latest">Latest</button>
-            <button data-action="refresh" class="warn">Force Refresh</button>
+            <button data-overview="count-tools">Count Tools</button>
+            <button data-overview="count-creators">Count Creators</button>
+            <button data-overview="count-ranks">Count Ranks</button>
+            <button data-overview="list-first-tools">List First 50 Tools</button>
           </div>
         </section>
 
-        <section class="card">
-          <h3>Appwrite DB Controls</h3>
+        <section class="tab-panel card" data-panel="tools">
+          <h3>Tools CRUD</h3>
           <div class="controls">
-            <button data-db-action="countTools">Count Tools</button>
-            <button data-db-action="listFirst100">List First 100</button>
-            <button data-db-action="validateSequence">Validate ID Sequence</button>
+            <button data-tools="list">List 100</button>
+            <button data-tools="get">Get by Doc ID</button>
+            <button data-tools="create">Create</button>
+            <button data-tools="update">Update</button>
+            <button data-tools="delete" class="warn">Delete</button>
+          </div>
+          <div class="grid-2">
+            <label>Document ID<input id="toolsDocId" placeholder="Appwrite document $id" /></label>
+            <label>Payload JSON<textarea id="toolsPayload" rows="8" placeholder='{"id":1001,"title":"New Tool","category":"Writing","description":"...","link":"https://..."}'></textarea></label>
+          </div>
+        </section>
+
+        <section class="tab-panel card" data-panel="creators">
+          <h3>Creators CRUD</h3>
+          <div class="controls">
+            <button data-creators="list">List 100</button>
+            <button data-creators="get">Get by Doc ID</button>
+            <button data-creators="create">Create</button>
+            <button data-creators="update">Update</button>
+            <button data-creators="delete" class="warn">Delete</button>
+          </div>
+          <div class="grid-2">
+            <label>Document ID<input id="creatorsDocId" placeholder="Appwrite document $id" /></label>
+            <label>Payload JSON<textarea id="creatorsPayload" rows="8" placeholder='{"name":"Creator Name","slug":"creator-name","avatar_url":"https://...","pick_ids":[1,2,3]}'></textarea></label>
+          </div>
+        </section>
+
+        <section class="tab-panel card" data-panel="ranks">
+          <h3>Ranks CRUD</h3>
+          <div class="controls">
+            <button data-ranks="list">List 100</button>
+            <button data-ranks="get">Get by Doc ID</button>
+            <button data-ranks="create">Create</button>
+            <button data-ranks="update">Update</button>
+            <button data-ranks="delete" class="warn">Delete</button>
+          </div>
+          <div class="grid-2">
+            <label>Document ID<input id="ranksDocId" placeholder="Appwrite document $id" /></label>
+            <label>Payload JSON<textarea id="ranksPayload" rows="8" placeholder='{"id":1001,"overall":90,"reasoning":91,"coding":89,"vision":88,"context":"95"}'></textarea></label>
           </div>
         </section>
       </section>
 
-      <section class="card">
-        <h3>Quick Summary</h3>
-        <div id="summary" class="summary">No data yet.</div>
-      </section>
-
-      <section class="card">
-        <h3>Response</h3>
-        <pre id="output">Run an action to view data...</pre>
-      </section>
+      <section class="card"><h3>Summary</h3><div id="summary" class="summary">No data yet.</div></section>
+      <section class="card"><h3>Output</h3><pre id="output">Run a control to view response...</pre></section>
     </section>
   </main>
-
   <script src="./script.js"></script>
 </body>
 </html>
