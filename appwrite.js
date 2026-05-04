@@ -145,7 +145,7 @@
   }
 
   async function fetchToolsPage(limit = 48, cursorAfter = null) {
-    const tools = (await fetchAllTools()).slice().sort((a, b) => new Date(b.$createdAt) - new Date(a.$createdAt));
+    const tools = (await fetchAllTools()).slice().sort((a, b) => String(a.title || '').localeCompare(String(b.title || ''), undefined, { sensitivity: 'base' }));
     let start = 0;
 
     if (cursorAfter) {
