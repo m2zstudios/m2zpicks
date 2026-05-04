@@ -174,9 +174,8 @@ async function fetchAllToolsFromAppwrite(env) {
 
   while (offset < total) {
   const params = new URLSearchParams();
-  params.append('queries[]', 'limit(100)');
-  params.append('queries[]', `offset(${offset})`);
-  params.append('queries[]', 'orderDesc("$createdAt")');
+  params.set('limit', '100');
+  params.set('offset', String(offset));
   const url = `${endpoint}/databases/${db}/collections/${col}/documents?${params.toString()}`;
 
   const res = await fetch(url, { headers });
