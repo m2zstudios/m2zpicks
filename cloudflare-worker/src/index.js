@@ -165,65 +165,56 @@ async function fetchAllToolsFromAppwrite(env) {
   const headers = {
     'x-appwrite-project': env.APPWRITE_PROJECT_ID,
     'x-appwrite-key': env.APPWRITE_API_KEY,
+    'x-appwrite-response-format': '1.0.0',
     'content-type': 'application/json'
   };
 
   const tools = [];
-  let cursorAfter = null;
+  let offset = 0;
+  let total = Infinity;
 
-  while (true) {
-  const params = new URLSearchParams();
-  params.append('queries[]', 'limit(100)');
-  if (cursorAfter) {
-    params.append('queries[]', `cursorAfter("${cursorAfter}")`);
+  while (offset < total) {
+    const params = new URLSearchParams();
+    params.append('queries[]', 'limit(100)');
+    params.append('queries[]', `offset(${offset})`);
+    params.append('queries[]', 'orderAsc("id")');
+
+    const url = `${endpoint}/databases/${db}/collections/${col}/documents?${params.toString()}`;
+
+    const res = await fetch(url, { headers });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Appwrite fetch failed: ${res.status} | ${text}`);
+    }
+
+    const payload = await res.json();
+
+    if (!payload || !Array.isArray(payload.documents)) {
+      throw new Error(`Unexpected Appwrite payload: ${JSON.stringify(payload)}`);
+    }
+
+    const docs = payload.documents || [];
+    total = Number(payload.total || 0);
+
+    tools.push(...docs);
+
+    if (!docs.length) break;
+
+    offset += docs.length;
   }
-
-  const url = `${endpoint}/databases/${db}/collections/${col}/documents?${params.toString()}`;
-
-  const res = await fetch(url, { headers });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(
-      `Appwrite fetch failed: ${res.status} | ${text}`
-    );
-  }
-
-  let payload;
-
-  try {
-    payload = await res.json();
-  } catch (_err) {
-    throw new Error('Appwrite returned invalid JSON');
-  }
-
-  if (!payload || !Array.isArray(payload.documents)) {
-    throw new Error(
-      `Unexpected Appwrite payload: ${JSON.stringify(payload)}`
-    );
-  }
-
-  const docs = payload.documents || [];
-  tools.push(...docs);
-
-  if (docs.length < 100) {
-    break;
-  }
-
-  cursorAfter = docs[docs.length - 1]?.$id;
-  if (!cursorAfter) {
-    break;
-  }
-}
 
   const seen = new Set();
   const deduped = [];
-  for (const tool of tools) {
-    const key = tool.$id || `id:${tool.id}`;
+
+  for (const t of tools) {
+    const key = t.$id || `id:${t.id}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    deduped.push(tool);
+    deduped.push(t);
   }
+
+  deduped.sort((a, b) => Number(a.id || 0) - Number(b.id || 0));
 
   return deduped;
 }
