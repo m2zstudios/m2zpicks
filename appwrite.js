@@ -96,17 +96,15 @@
   };
 
   const fetchCategories = async () => {
-    const payload = await fetchBridgeWithFallback('/categories', 'mz_categories_cache_bridge', async () => ({
-      categories: buildCategories(await fetchAllToolsDirect())
-    }));
-    return payload.categories || [];
+    const tools = await fetchAllTools();
+    return buildCategories(tools);
   };
 
-  const fetchBridgeStats = async () => fetchBridgeWithFallback('/stats', 'mz_stats_cache_bridge', async () => {
-    const tools = await fetchAllToolsDirect();
+  const fetchBridgeStats = async () => {
+    const tools = await fetchAllTools();
     const categories = buildCategories(tools);
     return { totalTools: tools.length, totalCategories: categories.length, lastRefreshedAt: null };
-  });
+  };
 
   const fetchLatestTools = async () => {
     const payload = await fetchBridgeWithFallback('/latest', 'mz_latest_cache_bridge', async () => ({
