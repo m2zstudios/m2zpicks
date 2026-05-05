@@ -183,3 +183,20 @@ After deployment, do a hard refresh (Ctrl+F5) to clear cached scripts.
 - `APPWRITE_API_KEY`
 - `REFRESH_TOKEN`
 
+
+
+=== Admin Panel CORS + API Key Notes (2026-05-05) ===
+- What happened:
+  - Admin UI started calling Appwrite Tables/Rows directly from browser with x-appwrite-key.
+  - Browser preflight/CORS can block this, even when domains are added, because server API key flows are safer via backend.
+- What can happen:
+  - 'TypeError: Failed to fetch' in console.
+  - 401 scope errors if key misses rows.read/rows.write.
+- How to fight it:
+  1) Use cache bridge endpoint for read-only listing (`/tools`, `/categories`, `/stats`).
+  2) For create/update/delete, use a server-side proxy or Cloudflare worker endpoint that stores key in secrets (not browser).
+  3) Ensure key has rows.read + rows.write on current DB/table model.
+- What was fixed now:
+  - Added clear CORS/preflight error messaging in admin script.
+  - Added fallback: if direct Appwrite tools read fails, admin falls back to cache bridge `/tools` so listing still works.
+  - Updated wording for modern scopes (rows.read/rows.write).
