@@ -2,10 +2,10 @@
 const AUTH={u:'m2z.ahmed',p:'TestKey123'};const S='m2z_admin_logged_in',K='m2z_admin_key';
 const $=id=>document.getElementById(id), qs=s=>document.querySelector(s), qsa=s=>[...document.querySelectorAll(s)];
 const st={tools:[],page:1,size:20};
-function cfg(){return{e:$('awEndpoint').value.trim(),p:$('awProject').value.trim(),d:$('awDatabase').value.trim(),c:$('awToolsCollection').value.trim(),cc:'creators',rc:'ranks'}}
+function cfg(){return{e:$('awEndpoint').value.trim(),p:$('awProject').value.trim(),d:$('awDatabase').value.trim(),c:$('awToolsTable').value.trim(),cc:'creators',rc:'ranks'}}
 function headers(){return{'x-appwrite-project':cfg().p,'x-appwrite-key':localStorage.getItem(K)||'','content-type':'application/json'}}
 async function req(path,m='GET',b){if(!(localStorage.getItem(K)||'').trim()) throw new Error('Save API key first in Settings tab.');const r=await fetch(`${cfg().e}${path}`,{method:m,headers:headers(),body:b?JSON.stringify(b):undefined});const t=await r.text();let j;try{j=JSON.parse(t)}catch{j={raw:t}}if(!r.ok){if(r.status===401){const msg=j?.message||'Unauthorized';throw new Error(`${msg}. Your API key likely misses scopes like documents.read/documents.write.`);}throw new Error(JSON.stringify(j));}return j}
-function path(col){return `/databases/${cfg().d}/collections/${col}/documents`}
+function path(col){return `/databases/${cfg().d}/tables/${col}/rows`}
 function showOut(x){$('output').textContent=typeof x==='string'?x:JSON.stringify(x,null,2)}
 function setPage(id){qsa('.page').forEach(p=>p.classList.remove('active'));$(id)?.classList.add('active');qsa('.nav-item[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===id));$('pageTitle').textContent=id.replace('-',' ').toUpperCase()}
 function updateAccess(){const has=!!(localStorage.getItem(K)||'').trim();const keyStatus=$('keyStatus'); if(keyStatus) keyStatus.textContent=has?'API key saved.':'No API key';const lock=$('lockedNotice'); if(lock) lock.classList.toggle('hidden',has);if(has&&$('awApiKey'))$('awApiKey').value='••••••••••';}
@@ -18,16 +18,16 @@ $('logoutBtn').onclick=()=>{sessionStorage.removeItem(S);location.reload()};$('s
 $('menuBtn').onclick=()=>document.body.classList.toggle('sidebar-open');$('themeToggle').onclick=()=>document.body.dataset.theme=document.body.dataset.theme==='light'?'dark':'light';
 qsa('.nav-item[data-page]').forEach(b=>b.onclick=()=>setPage(b.dataset.page));qsa('[data-page]').forEach(b=>b.onclick=()=>setPage(b.dataset.page));
 $('loadStatsBtn').onclick=loadTools;$('reloadToolsBtn').onclick=loadTools;$('toolSearch').oninput=renderTools;$('toolCategoryFilter').oninput=renderTools;$('prevPageBtn').onclick=()=>{st.page=Math.max(1,st.page-1);renderTools()};$('nextPageBtn').onclick=()=>{st.page++;renderTools()};
-$('createToolBtn').onclick=async()=>{try{const d={id:Number($('toolId').value),title:$('toolTitle').value,category:$('toolCategory').value,description:$('toolDescription').value,link:$('toolLink').value,tags:$('toolTags').value,pricing:$('toolPricing').value,thumbnail:$('toolThumb').value,featured:$('toolFeatured').checked};showOut(await req(path(cfg().c),'POST',{documentId:'unique()',data:d}));await loadTools();}catch(e){showOut(String(e))}};
+$('createToolBtn').onclick=async()=>{try{const d={id:Number($('toolId').value),title:$('toolTitle').value,category:$('toolCategory').value,description:$('toolDescription').value,link:$('toolLink').value,tags:$('toolTags').value,pricing:$('toolPricing').value,thumbnail:$('toolThumb').value,featured:$('toolFeatured').checked};showOut(await req(path(cfg().c),'POST',{rowId:'unique()',data:d}));await loadTools();}catch(e){showOut(String(e))}};
 $('updateToolBtn').onclick=async()=>{try{const id=$('toolDocId').value.trim();const d={id:Number($('toolId').value),title:$('toolTitle').value,category:$('toolCategory').value,description:$('toolDescription').value,link:$('toolLink').value,tags:$('toolTags').value,pricing:$('toolPricing').value,thumbnail:$('toolThumb').value,featured:$('toolFeatured').checked};showOut(await req(`${path(cfg().c)}/${id}`,'PATCH',{data:d}));await loadTools();}catch(e){showOut(String(e))}};
 $('deleteToolBtn').onclick=async()=>{try{const id=$('toolDocId').value.trim();showOut(await req(`${path(cfg().c)}/${id}`,'DELETE'));await loadTools();}catch(e){showOut(String(e))}};
 const j=(id)=>{const t=$(id).value.trim();return t?JSON.parse(t):{}};
 $('listCreatorsBtn').onclick=async()=>showOut(await req(`${path(cfg().cc)}?queries[]=limit(100)`));
-$('createCreatorBtn').onclick=async()=>showOut(await req(path(cfg().cc),'POST',{documentId:'unique()',data:j('creatorPayload')}));
+$('createCreatorBtn').onclick=async()=>showOut(await req(path(cfg().cc),'POST',{rowId:'unique()',data:j('creatorPayload')}));
 $('updateCreatorBtn').onclick=async()=>showOut(await req(`${path(cfg().cc)}/${$('creatorDocId').value.trim()}`,'PATCH',{data:j('creatorPayload')}));
 $('deleteCreatorBtn').onclick=async()=>showOut(await req(`${path(cfg().cc)}/${$('creatorDocId').value.trim()}`,'DELETE'));
 $('listRanksBtn').onclick=async()=>showOut(await req(`${path(cfg().rc)}?queries[]=limit(100)`));
-$('createRankBtn').onclick=async()=>showOut(await req(path(cfg().rc),'POST',{documentId:'unique()',data:j('rankPayload')}));
+$('createRankBtn').onclick=async()=>showOut(await req(path(cfg().rc),'POST',{rowId:'unique()',data:j('rankPayload')}));
 $('updateRankBtn').onclick=async()=>showOut(await req(`${path(cfg().rc)}/${$('rankDocId').value.trim()}`,'PATCH',{data:j('rankPayload')}));
 $('deleteRankBtn').onclick=async()=>showOut(await req(`${path(cfg().rc)}/${$('rankDocId').value.trim()}`,'DELETE'));
 })();
