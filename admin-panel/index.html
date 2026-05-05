@@ -54,17 +54,7 @@
     </section>
 
     <section id="panelView" class="hidden">
-      <section class="card">
-        <h3>API Access</h3>
-        <div class="grid2">
-          <input id="awEndpoint" value="https://sfo.cloud.appwrite.io/v1" />
-          <input id="awProject" value="m2zpicks" />
-          <input id="awDatabase" value="m2zpicks-db" />
-          <input id="awToolsCollection" value="tools" />
-          <input id="awApiKey" type="password" placeholder="Paste Appwrite API key" />
-        </div>
-        <div class="row"><button id="saveKeyBtn">Save API Key</button><span id="keyStatus"></span></div>
-      </section>
+      
 
       <section id="dashboard" class="page card active">
         <div class="cards4">
@@ -121,7 +111,20 @@
       <section id="users" class="page card"><h3>Users</h3><p class="muted">Not added: needs auth/user admin permissions.</p></section>
       <section id="monetization" class="page card"><h3>Monetization</h3><p class="muted">Not added: needs ad config storage and runtime integration.</p></section>
       <section id="analytics" class="page card"><h3>Analytics</h3><p class="muted">Not added: needs click/traffic tracking pipeline.</p></section>
-      <section id="settings" class="page card"><h3>Settings</h3><p class="muted">Not added fully: currently API/DB settings only at top.</p></section>
+      <section id="settings" class="page card"><h3>Settings</h3>
+        <p class="muted">General/SEO/API settings.</p>
+<section class="card">
+        <h3>API Access</h3>
+        <div class="grid2">
+          <input id="awEndpoint" value="https://sfo.cloud.appwrite.io/v1" />
+          <input id="awProject" value="m2zpicks" />
+          <input id="awDatabase" value="m2zpicks-db" />
+          <input id="awToolsCollection" value="tools" />
+          <input id="awApiKey" type="password" placeholder="Paste Appwrite API key" />
+        </div>
+        <div class="row"><button id="saveKeyBtn">Save API Key</button><span id="keyStatus"></span></div>
+      </section>
+      </section>
 
       <section class="card"><h3>Output</h3><pre id="output"></pre></section>
     </section>
