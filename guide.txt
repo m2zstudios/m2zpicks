@@ -200,3 +200,5 @@ After deployment, do a hard refresh (Ctrl+F5) to clear cached scripts.
   - Added clear CORS/preflight error messaging in admin script.
   - Added fallback: if direct Appwrite tools read fails, admin falls back to cache bridge `/tools` so listing still works.
   - Updated wording for modern scopes (rows.read/rows.write).
+
+- Temporary change: admin panel now supports Appwrite Dev Key header (`x-appwrite-dev-key`) and includes a short-lived hardcoded default key for quick testing. Remove it before production.
