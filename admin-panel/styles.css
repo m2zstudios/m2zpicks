@@ -11,3 +11,5 @@ input,textarea,button{border-radius:8px;border:1px solid var(--border);padding:1
 @media(max-width:900px){.sidebar{position:fixed;left:-280px;top:0;height:100%;z-index:20;transition:.2s}body.sidebar-open .sidebar{left:0}.grid2,.cards4{grid-template-columns:1fr}}
 
 .main{height:100vh;overflow:auto;}
+
+#themeToggle,.theme-toggle{display:none!important}

@@ -158,6 +158,9 @@ body::after {
   background: rgba(255,255,255,0.08); border-color: var(--bd-hi);
 }
 .menu-toggle { display: none; }
+/* Legacy safety: hide/remove any cached theme toggle markup while dark mode is the only supported theme. */
+#themeToggle,.theme-toggle{display:none!important}
+
 
 /* ══════════════════════════════════════
    HERO
