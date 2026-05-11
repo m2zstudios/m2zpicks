@@ -1,4 +1,4 @@
-# m2zpicks Final Setup Guide (Netlify + Appwrite + Cloudflare Worker KV)
+# M2ZPicks Final Setup Guide (Netlify + Appwrite + Cloudflare Worker KV)
 
 This guide is the exact checklist to make the project work end-to-end in production.
 
