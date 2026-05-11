@@ -35,9 +35,17 @@ try{
   const allPickIds=[...new Set(creatorDocs.flatMap(c=>((c.pick_ids||c.picks_ids)||[]).map(Number)).filter(Boolean))];
   const tools=allPickIds.length ? await withTimeout(window.AppwriteLayer.fetchToolsByIds(allPickIds), 12000) : [];
   const byId=new Map(tools.map(t=>[Number(t.id),t]));
+  const normalizePlatform=(value='')=>String(value||'').trim().toLowerCase().replace(/\s+/g,' ');
+  const platformMatches=(creatorPlatform, selectedPlatform)=>{
+    if(selectedPlatform==='all') return true;
+    const selected=normalizePlatform(selectedPlatform);
+    return String(creatorPlatform||'').split(',').map(normalizePlatform).includes(selected);
+  };
+  const displayPlatform=(value='Unknown')=>String(value||'Unknown').split(',').map(p=>p.trim()).filter(Boolean).join(' / ')||'Unknown';
   const creators=creatorDocs.map(c=>({
     ...c,
     platform:c.platform||c.platforn||'Unknown',
+    platform_label:displayPlatform(c.platform||c.platforn||'Unknown'),
     pick_ids:Array.isArray(c.pick_ids)?c.pick_ids:(Array.isArray(c.picks_ids)?c.picks_ids:[])
   }));
   const root=document.getElementById('creatorBlocks');
@@ -53,12 +61,12 @@ try{
   }
 
   function render(platform='all'){
-    const list=creators.filter(c=>platform==='all'||c.platform===platform);
+    const list=creators.filter(c=>platformMatches(c.platform, platform));
     root.innerHTML=list.map((c,i)=>{
       const picks=(c.pick_ids||[]).map(id=>byId.get(Number(id))).filter(Boolean);
       const top=picks[0];
       const rest=picks.slice(1,4);
-      return `<article class="creator-block ${i%2?'flip':''}"><div><div class="creator-top-section"><div class="name-badge-row"><div><div class="creator-fullname">${c.name} <span class="vtick">✓</span></div><div class="niche-row">${(c.niche_tags||[]).map(t=>`<span class='niche-tag'>${t}</span>`).join('')}</div></div><div>${c.reach_label||''}</div></div></div>${top?`<div class='rec-tool-box'><img class='rec-tool-logo' src='${getToolLogo(top)}' alt='${top.title} logo' onerror="this.src='fallback.png'"><div class='rec-tool-name'>${top.title}</div></div>`:''}<div class='quotes-area'><div class='quote-block'>${c.tool_quote||''}</div><div class='quote-block'>${c.platform_quote||''}</div></div><div class='picks-head'><span>${(c.name||'Creator').split(' ')[0]}'s Other Picks</span><span>${Math.max((c.pick_ids||[]).length-1,0)} more</span></div><div class='pick-rows'>${rest.map((t,ix)=>`<a class='pick-row' href='detailed.html?id=${t.id}'><span class='pick-rank'>#${ix+2}</span><img class='pick-tool-logo' src='${getToolLogo(t)}' alt='${t.title} logo' onerror="this.src='fallback.png'"><span class='pick-tool-name'>${t.title}</span></a>`).join('')}</div><div class='card-foot'><a class='social-btn' href='${c.channel_url||'#'}' target='_blank'>${c.platform||'Channel'}</a></div></div><div class="creator-img-col"><img src="${c.avatar_url||'fallback.png'}" alt="${c.name}"></div></article>`;
+      return `<article class="creator-block ${i%2?'flip':''}"><div><div class="creator-top-section"><div class="name-badge-row"><div><div class="creator-fullname">${c.name} <span class="vtick">✓</span></div><div class="niche-row">${(c.niche_tags||[]).map(t=>`<span class='niche-tag'>${t}</span>`).join('')}</div></div><div>${c.reach_label||''}</div></div></div>${top?`<div class='rec-tool-box'><img class='rec-tool-logo' src='${getToolLogo(top)}' alt='${top.title} logo' onerror="this.src='fallback.png'"><div class='rec-tool-name'>${top.title}</div></div>`:''}<div class='quotes-area'><div class='quote-block'>${c.tool_quote||''}</div><div class='quote-block'>${c.platform_quote||''}</div></div><div class='picks-head'><span>${(c.name||'Creator').split(' ')[0]}'s Other Picks</span><span>${Math.max((c.pick_ids||[]).length-1,0)} more</span></div><div class='pick-rows'>${rest.map((t,ix)=>`<a class='pick-row' href='detailed.html?id=${t.id}'><span class='pick-rank'>#${ix+2}</span><img class='pick-tool-logo' src='${getToolLogo(t)}' alt='${t.title} logo' onerror="this.src='fallback.png'"><span class='pick-tool-name'>${t.title}</span></a>`).join('')}</div><div class='card-foot'><a class='social-btn' href='${c.channel_url||'#'}' target='_blank'>${c.platform_label||c.platform||'Channel'}</a></div></div><div class="creator-img-col"><img src="${c.avatar_url||'fallback.png'}" alt="${c.name}"></div></article>`;
     }).join('')||'<p>No creators yet.</p>';
   }
 
