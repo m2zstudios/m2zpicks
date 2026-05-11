@@ -56,6 +56,49 @@ Collections/tables required:
 - `featured` (boolean)
 - optional: `reach_label`, `reach_k`, `niche_tags`, `tool_quote`, `platform_quote`
 
+#### Separating creators by platform tabs
+The creator tabs on `creators.html` filter by the creator row's `platform` field. If a creator only appears under **All**, it usually means the `platform` value is missing, misspelled, or does not exactly match a tab's `data-platform` value.
+
+Use these exact `platform` string values in the `creators` table/collection:
+
+| Tab button | Creator `platform` value |
+| --- | --- |
+| YouTube | `YouTube` |
+| Twitter / X | `Twitter / X` |
+| TikTok | `TikTok` |
+| Instagram | `Instagram` |
+
+Important rules:
+- Use the field name `platform` (not `platforn`). The site still supports `platforn` only as an old typo fallback, but new creator rows should use `platform`.
+- Values are exact-match strings. `youtube`, `Youtube`, `You Tube`, `Instagram ` with a trailing space, or `IG` will not match the current tab buttons.
+- If you want another platform tab later (for example `LinkedIn`), add a new button in `creators.html` with `data-platform="LinkedIn"`, then use `platform = LinkedIn` in creator rows.
+- After changing creator fields in Appwrite, refresh the page and clear session storage if old creator data is cached.
+
+Example creator rows:
+```json
+{
+  "slug": "mkbhd",
+  "name": "Marques Brownlee",
+  "platform": "YouTube",
+  "avatar_url": "https://example.com/avatar.jpg",
+  "channel_url": "https://youtube.com/@mkbhd",
+  "pick_ids": [1, 25, 48],
+  "featured": true
+}
+```
+
+```json
+{
+  "slug": "ai-instagram-creator",
+  "name": "AI Instagram Creator",
+  "platform": "Instagram",
+  "avatar_url": "https://example.com/avatar.jpg",
+  "channel_url": "https://instagram.com/example",
+  "pick_ids": [12, 44, 81],
+  "featured": false
+}
+```
+
 Permissions:
 - For now: public read access for `tools`, `ranks`, `creators`.
 
